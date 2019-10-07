@@ -1,0 +1,4 @@
+structure(list(gupta1993standardization = structure(list(title = "Standardization and decomposition of rates: a user's manual", 
+    author = structure(list(list(given = c("Prithwis", "Das"), 
+        family = "Gupta", role = NULL, email = NULL, comment = NULL)), class = "person"), 
+    number = "186", year = "1993", publisher = "US Department of Commerce, Economics and Statistics Administration, Bureau~…"), bibtype = "Book", key = "gupta1993standardization")), class = "bibentry", strings = structure(character(0), .Names = character(0)))
