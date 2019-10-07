@@ -11,15 +11,14 @@
 #' factors
 #'
 #' @importFrom data.table data.table setnames setkeyv shift
-#' 
+#'
 #' @importFrom MASS mvrnorm
-#' 
+#'
 #' @importFrom matrixStats rowProds
 #'
 #' @export
 #'
 simulate_decomp_data_fullmat <- function(T_term, num_factors, id_grps) {
-
   sim_dt <- data.table(expand.grid(t = c(1:T_term), Id = c(1:id_grps)))
 
   factor_sims <- data.table(
