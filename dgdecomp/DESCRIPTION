@@ -1,7 +1,7 @@
 Package: dgdecomp
 Type: Package
 Title: Das Gupta Decomposition on Multiplicative Factors
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: person("Nafis", "Sadat", email = "sadatnfs@gmail.com",
   role = c("aut", "cre"))
 Description: Takes any P number of factors, and decomposes them into additive factors.

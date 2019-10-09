@@ -16,15 +16,17 @@
 #' @export
 #'
 Decomp_on_DT <- function(input_data, factor_names, bycol) {
-  
+
   ## Apply decomp to each row of data
   decomp_output <- input_data[,
-               as.list(Decomp_Factors(as.matrix(.SD)[1,], as.matrix(.SD)[2,])),
-               by = bycol, .SDcols = factor_names]
-    
-    
-  data.table::setnames(decomp_output,
-                       c(index_cols, paste0("decomp_", factor_names))
+    as.list(Decomp_Factors(as.matrix(.SD)[1, ], as.matrix(.SD)[2, ])),
+    by = bycol, .SDcols = factor_names
+  ]
+
+  data.table::setnames(
+    decomp_output,
+    c(bycol, paste0("decomp_", factor_names))
+  )
 
   return(decomp_output)
 }

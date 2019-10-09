@@ -4,13 +4,16 @@
 \alias{Decomp_on_DT}
 \title{Apply DG Decomposition to data.table columns}
 \usage{
-Decomp_on_DT(input_data, factor_names)
+Decomp_on_DT(input_data, factor_names, bycol)
 }
 \arguments{
 \item{input_data}{A data.table with the factors, which must already
 be sorted}
 
 \item{factor_names}{A vector of column names for the factor}
+
+\item{bycol}{The 'by' slicer which must make sure that the data is
+reduced to just 2 rows per group after slicing}
 }
 \value{
 A data.table of the same size as input, but instead with
