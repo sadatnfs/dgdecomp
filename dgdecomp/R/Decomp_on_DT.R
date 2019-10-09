@@ -5,6 +5,9 @@
 #'
 #' @param factor_names A vector of column names for the factor
 #'
+#' @param bycol The 'by' slicer which must make sure that the data is
+#' reduced to just 2 rows per group after slicing
+#'
 #' @return A data.table of the same size as input, but instead with
 #' the additive decomposition results (first row will be NA as being the
 #' starting period)
@@ -12,22 +15,16 @@
 #' @importFrom data.table data.table rbindlist shift .SD setnames
 #' @export
 #'
-Decomp_on_DT <- function(input_data, factor_names) {
-  dt_out <- rbindlist(
+Decomp_on_DT <- function(input_data, factor_names, bycol) {
+  
+  ## Apply decomp to each row of data
+  decomp_output <- input_data[,
+               as.list(Decomp_Factors(as.matrix(.SD)[1,], as.matrix(.SD)[2,])),
+               by = bycol, .SDcols = factor_names]
+    
+    
+  data.table::setnames(decomp_output,
+                       c(index_cols, paste0("decomp_", factor_names))
 
-    ## Apply decomp to each row of data
-    lapply(c(1:nrow(input_data)), function(x)
-      Decomp_Factors(
-
-        ## First input: value of X yesterday
-        unlist(input_data[, data.table::shift(.SD),
-          .SDcols = factor_names
-        ][x, ]),
-
-        ## Second input: value of X today
-        unlist(input_data[, .SD, .SDcols = factor_names][x, ])
-      ))
-  )
-  data.table::setnames(dt_out, paste0("decomp_", factor_names))
-  return(dt_out)
+  return(decomp_output)
 }
