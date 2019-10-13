@@ -14,6 +14,9 @@ be sorted}
 
 \item{bycol}{The 'by' slicer which must make sure that the data is
 reduced to just 2 rows per group after slicing}
+
+\item{...}{extra parameters to be passed through \code{Decomp_Factors()}
+to \code{all.equal()}}
 }
 \value{
 A data.table of the same size as input, but instead with

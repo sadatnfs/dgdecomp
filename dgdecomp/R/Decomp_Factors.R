@@ -6,6 +6,8 @@
 #'
 #' @param return_dt A boolean on whether to return a data.table or a vector
 #'
+#' @param ... extra parameters to be passed to \code{all.equal()}
+#'
 #' @return A data.table or vector of decomposed effects for each factors,
 #' which is already multiplied by the change values
 #'
@@ -13,7 +15,7 @@
 #'
 #' @export
 #'
-Decomp_Factors <- function(vec_x, vec_y, return_dt = TRUE) {
+Decomp_Factors <- function(vec_x, vec_y, return_dt = TRUE, ...) {
 
   # Simple assertions
   # stopifnot(length(vec_x) == length(vec_y))
@@ -37,7 +39,7 @@ Decomp_Factors <- function(vec_x, vec_y, return_dt = TRUE) {
   }
 
   # Assertion on whether the decomp actually worked
-  stopifnot(all.equal(prod(vec_y) - prod(vec_x), sum(effects_all)))
+  stopifnot(all.equal(prod(vec_y) - prod(vec_x), sum(effects_all), ...))
 
   # Return the effects
   return(effects_all)

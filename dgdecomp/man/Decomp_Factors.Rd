@@ -4,7 +4,7 @@
 \alias{Decomp_Factors}
 \title{Compute the marginal decomposition effects from given vectors}
 \usage{
-Decomp_Factors(vec_x, vec_y, return_dt = TRUE)
+Decomp_Factors(vec_x, vec_y, return_dt = TRUE, ...)
 }
 \arguments{
 \item{vec_x}{First input vector (represents t-1)}
@@ -12,6 +12,8 @@ Decomp_Factors(vec_x, vec_y, return_dt = TRUE)
 \item{vec_y}{Second input vector (represents t)}
 
 \item{return_dt}{A boolean on whether to return a data.table or a vector}
+
+\item{...}{extra parameters to be passed to \code{all.equal()}}
 }
 \value{
 A data.table or vector of decomposed effects for each factors,
