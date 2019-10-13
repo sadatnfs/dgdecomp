@@ -39,7 +39,9 @@ Decomp_Factors <- function(vec_x, vec_y, return_dt = TRUE, ...) {
   }
 
   # Assertion on whether the decomp actually worked
-  stopifnot(all.equal(prod(vec_y) - prod(vec_x), sum(effects_all), ...))
+  stopifnot(base::all.equal(prod(vec_y) - prod(vec_x), 
+                      sum(effects_all), 
+                      ...))
 
   # Return the effects
   return(effects_all)
