@@ -5,11 +5,9 @@
 \title{Compute the combination of all the elements of the given vectors
 corresponding to the given sizes (using Func_Create_Combn)}
 \usage{
-Func_Cross(Pfac, vec_x, vec_y, size1, size2)
+Func_Cross(vec_x, vec_y, size1, size2)
 }
 \arguments{
-\item{Pfac}{Number of factors minus 1}
-
 \item{vec_x}{First input vector}
 
 \item{vec_y}{Second input vector}

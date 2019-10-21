@@ -30,6 +30,7 @@ Func_Create_Combn <- function(Pfac, size1, size2) {
   ## we can use the same ordering of the sequences to project on to the matrix!
   
   ## Reverse the combo order of y
+  #### Must return a matrix ###
   if (size2 == 1) {
     vec_y_sim <- t(as.matrix(vec_y_sim[, ncol(vec_y_sim):1]))
   } else {
@@ -38,8 +39,9 @@ Func_Create_Combn <- function(Pfac, size1, size2) {
   
   ## Make sure output dimensions are good
   stopifnot(assertthat::are_equal(
-    ncol(vec_x_pos), 
-    ncol(vec_y_pos)))
+    ncol(vec_x_sim), 
+    ncol(vec_y_sim))
+    )
   
   ## Return the named list of position vectors
   return(list("vec_x_pos" = vec_x_sim,

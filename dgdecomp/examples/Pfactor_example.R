@@ -12,7 +12,8 @@ ffdecomp_simdata <- simulate_decomp_data(number_of_factors)
 
 ## Compute decomp with our glorious functions
 decomp_out <- Decomp_Factors(
-  ffdecomp_simdata$vec_X_lag, ffdecomp_simdata$vec_X_today
+  ffdecomp_simdata$vec_X_lag, ffdecomp_simdata$vec_X_today,
+  tolerance = 1e-4
 )
 all.equal(sum(decomp_out), ffdecomp_simdata$y_today - ffdecomp_simdata$y_lag)
 

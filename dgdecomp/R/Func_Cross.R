@@ -1,8 +1,6 @@
 #' @title Compute the combination of all the elements of the given vectors
 #' corresponding to the given sizes (using Func_Create_Combn)
 #'
-#' @param Pfac Number of factors minus 1
-#'
 #' @param vec_x First input vector
 #'
 #' @param vec_y Second input vector
@@ -17,19 +15,22 @@
 #'
 #' @export
 #'
-Func_Cross <- function(Pfac, vec_x, vec_y, size1, size2) {
-  
+Func_Cross <- function(vec_x, vec_y, size1, size2) {
+
   ## Simulate sequences of "positions" of the two vectors
-  posit_seqs <- Func_Create_Combn(Pfac, size1, size2)
-  
+  posit_seqs <- Func_Create_Combn(length(vec_x), size1, size2)
+
   ## Apply combo positioning to the input data vectors
-  return(vapply(c(1:ncol(vec_x_sim)),
+  #### NOTE that this is traversing across columns of the combo set
+  #### NOT the number of factors
+  return(
+    vapply(c(1:ncol(posit_seqs$vec_x_pos)),
          function(x) {
            prod(c(vec_x[posit_seqs$vec_x_pos[,x]],
                   vec_y[posit_seqs$vec_y_pos[,x]] ))
          },
          FUN.VALUE = 0
   ))
-  
-  
+
+
 }
