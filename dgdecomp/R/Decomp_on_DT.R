@@ -18,12 +18,13 @@
 #' @importFrom data.table data.table rbindlist shift .SD setnames
 #' @export
 #'
-Decomp_on_DT <- function(input_data, factor_names, bycol, ...) {
+Decomp_on_DT <- compiler::cmpfun(function(input_data, factor_names, bycol, ...) {
 
   ## Apply decomp to each row of data
   decomp_output <- input_data[,
     as.list(Decomp_Factors(as.matrix(.SD)[1, ], as.matrix(.SD)[2, ],
-                           return_dt = TRUE, ...)),
+      return_dt = TRUE, ...
+    )),
     by = bycol, .SDcols = factor_names
   ]
 
@@ -33,4 +34,4 @@ Decomp_on_DT <- function(input_data, factor_names, bycol, ...) {
   )
 
   return(decomp_output)
-}
+})

@@ -15,7 +15,7 @@
 #'
 #' @export
 #'
-Decomp_Factors <- function(vec_x, vec_y, return_dt = TRUE, ...) {
+Decomp_Factors <- compiler::cmpfun(function(vec_x, vec_y, return_dt = TRUE, ...) {
 
   # Simple assertions
   # stopifnot(length(vec_x) == length(vec_y))
@@ -39,10 +39,12 @@ Decomp_Factors <- function(vec_x, vec_y, return_dt = TRUE, ...) {
   }
 
   # Assertion on whether the decomp actually worked
-  stopifnot(base::all.equal(prod(vec_y) - prod(vec_x), 
-                      sum(effects_all), 
-                      ...))
+  stopifnot(base::all.equal(
+    prod(vec_y) - prod(vec_x),
+    sum(effects_all),
+    ...
+  ))
 
   # Return the effects
   return(effects_all)
-}
+})

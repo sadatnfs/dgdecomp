@@ -13,6 +13,6 @@
 #'
 #' @export
 #'
-Func_Inner <- function(P, r, vec_x, vec_y) {
+Func_Inner <- compiler::cmpfun(function(P, r, vec_x, vec_y) {
   Func_Num(P, r, vec_x, vec_y) / Func_Dem(P, r)
-}
+})

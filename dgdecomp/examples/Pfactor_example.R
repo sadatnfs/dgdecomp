@@ -21,7 +21,7 @@ all.equal(sum(decomp_out), ffdecomp_simdata$y_today - ffdecomp_simdata$y_lag)
 
 ##### Testing on data.table input ----
 
-### Simulate 10 time periods; P factors; 3 groups
+### Simulate 2 time periods; P factors; 3 groups
 sim_dt <- simulate_decomp_data_fullmat(2, number_of_factors, 3)
 
 decomp_out_DT <- Decomp_on_DT(
@@ -39,4 +39,5 @@ decomp_delta <- decomp_out_DT[, .(Id,
 ),
 .SDcols = paste0("decomp_X_", 1:number_of_factors)
 ]
+
 all.equal(true_delta$Ydelta, decomp_delta$decomp_delta)
