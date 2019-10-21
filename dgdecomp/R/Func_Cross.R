@@ -25,7 +25,8 @@ Func_Cross <- function(Pfac, vec_x, vec_y, size1, size2) {
   ## Apply combo positioning to the input data vectors
   return(vapply(c(1:ncol(vec_x_sim)),
          function(x) {
-           prod(c(vec_x[vec_x_sim[,x]], vec_y[vec_y_sim[,x]] ))
+           prod(c(vec_x[posit_seqs$vec_x_pos[,x]],
+                  vec_y[posit_seqs$vec_y_pos[,x]] ))
          },
          FUN.VALUE = 0
   ))
