@@ -1,5 +1,7 @@
 #' @title Compute the combination of all the elements of the given vectors
-#' corresponding to the given sizes
+#' corresponding to the given sizes (using Func_Create_Combn)
+#'
+#' @param Pfac Number of factors minus 1
 #'
 #' @param vec_x First input vector
 #'
@@ -10,34 +12,23 @@
 #' @param size2 Number of elements to take from vec_y
 #'
 #' @return A vector of column products made from the unique combinations
-#' based on the params
+#' of the *data*
 #'
-#' @importFrom utils combn
-#' @importFrom assertthat are_equal
 #'
 #' @export
 #'
-Func_Cross <- function(vec_x, vec_y, size1, size2) {
-
-  ## First, P-r small and r-1 caps:
-  vec_x_combo <- utils::combn(vec_x, m = size1)
-  vec_y_combo <- utils::combn(vec_y, m = size2)
-
-  ### This needs reversal to counter the count
-  if (size2 == 1) {
-    vec_y_combo <- t(as.matrix(vec_y_combo[, ncol(vec_y_combo):1]))
-  } else {
-    vec_y_combo <- vec_y_combo[, ncol(vec_y_combo):1]
-  }
-
-  stopifnot(assertthat::are_equal(ncol(vec_x_combo), ncol(vec_y_combo)))
-
-  ## Now that we have the matrix of combos,
-  ## we multiple X and Y combo column wise
-  return(vapply(c(1:ncol(vec_x_combo)),
-    function(x) {
-      prod(c(vec_x_combo[, x], vec_y_combo[, x]))
-    },
-    FUN.VALUE = 0
+Func_Cross <- function(Pfac, vec_x, vec_y, size1, size2) {
+  
+  ## Simulate sequences of "positions" of the two vectors
+  posit_seqs <- Func_Create_Combn(Pfac, size1, size2)
+  
+  ## Apply combo positioning to the input data vectors
+  return(vapply(c(1:ncol(vec_x_sim)),
+         function(x) {
+           prod(c(vec_x[vec_x_sim[,x]], vec_y[vec_y_sim[,x]] ))
+         },
+         FUN.VALUE = 0
   ))
+  
+  
 }

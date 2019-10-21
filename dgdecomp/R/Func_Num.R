@@ -24,12 +24,13 @@ Func_Num <- function(P, r, vec_x, vec_y) {
     size2 <- r - 1 ## Will never be <= 1 because r > 1
 
     ## First, P-r small and r-1 caps:
-    this_count <- sum(Func_Cross(vec_x, vec_y, size1, size2))
+    this_count <- sum(Func_Cross(eval(P - 1), vec_x, vec_y, size1, size2))
 
     ## Next, P-r caps and r-1 small:
     ### ONLY applicable if we are not comparing identical sizes
     if (size1 != size2) {
-      this_count <- this_count + sum(Func_Cross(vec_x, vec_y, size2, size1))
+      this_count <- this_count + sum(
+        Func_Cross(eval(P - 1), vec_x, vec_y, size2, size1))
     }
   }
 
