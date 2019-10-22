@@ -1,4 +1,7 @@
 #include <iostream>
+#include "mkl.h"
+#include <omp.h>
+
 // #include <iterator>
 #include <vector>
 #include <cstdlib>
@@ -23,12 +26,17 @@ using namespace arma;
 ///// Here, I wrote a mostly-pure C++ function
 ///// and then an export function with SEXP inputs and outputs
 
+
+
 //// Output the positioned matrix (Func_Cross)
 arma::mat ArmaCross_(
     arma::mat vec_x, arma::mat vec_y,
     arma::mat vec_x_pos, arma::mat vec_y_pos) {
 
-
+  
+  mkl_set_num_threads(10);
+  omp_set_num_threads(10);
+  
 	// Create output matrix
 	arma::mat prod_inner(vec_x.n_rows, vec_x_pos.n_cols);
 
@@ -167,8 +175,12 @@ arma::vec ArmaInner_(
     arma::mat vec_x, arma::mat vec_y,
     arma::mat vec_x_pos, arma::mat vec_y_pos) {
 
+	if (r == 1) {
+		return (arma::prod(vec_x, 1) + arma::prod(vec_y, 1)) / P;
+	} else {
+		return ArmaNum_(P, r, vec_x, vec_y, vec_x_pos, vec_y_pos) / (P * nCr(P - 1, r - 1));	
+	}
 	
-	return ArmaNum_(P, r, vec_x, vec_y, vec_x_pos, vec_y_pos) / (P * nCr(P - 1, r - 1));
 }
 
 

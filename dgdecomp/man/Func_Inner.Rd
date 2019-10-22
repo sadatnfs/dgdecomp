@@ -8,7 +8,7 @@ where all the params gets passed to Func_Num() and Func_Den()}
 \usage{
 Func_Inner(P, r, vec_x, vec_y)
 
-Func_Inner_Matx(P, r, vec_x, vec_y)
+Func_Inner_Matx(P, r, vec_x, vec_y, vec_x_pos, vec_y_pos)
 }
 \arguments{
 \item{P}{Number of factors}
