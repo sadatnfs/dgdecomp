@@ -1,5 +1,5 @@
 #include <iostream>
-#include "mkl.h"
+// #include "mkl.h"
 #include <omp.h>
 
 // #include <iterator>
@@ -34,7 +34,7 @@ arma::mat ArmaCross_(
     arma::mat vec_x_pos, arma::mat vec_y_pos) {
 
   
-  mkl_set_num_threads(10);
+  // mkl_set_num_threads(10);
   omp_set_num_threads(10);
   
 	// Create output matrix
@@ -266,18 +266,16 @@ RcppExport SEXP ArmaInner(
 // RcppExport SEXP CustomCombn(
 //     SEXP Pfac, SEXP size1, SEXP size2) {
 
-// 	auto vec_x_sim = discreture::combinations(as<int>(Pfac), as<int>(size1));
-// 	auto vec_y_sim = reversed(discreture::combinations(as<int>(Pfac), as<int>(size2)));
+// 	List outthis = List::create(discreture::combinations(as<int>(Pfac), as<int>(size1)));
+	
+// 	NumericMatrix outz(as<int>(Pfac), as<int>(size1));
+// 	for(int row = 0; row < outz.rows(); row++) {
+// 		for(int col = 0; col < outz.cols(); col++) {
+// 			outz(row,col) = outthis[0](row)[col];
+// 		}
+// 	}
 
-// 	// arma::mat vec_x_sim_out(as<int>(size1), NCR(as<int>(Pfac), 2));
-// 	arma::mat vec_x_sim_out = as<arma::mat>(vec_x_sim);
 
-// 	// // int i = 0;
-// 	// for (int i = 0; i < vec_x_sim.size(); ++i) {
-// 	//     vec_x_sim_out.col(i) = as<arma::colvec>(vec_x_sim[i]);
-// 	//     // i++;
-// 	// }
-
-// 	return Rcpp::wrap(vec_x_sim_out);
+// 	return Rcpp::wrap(outz);
 
 // }
