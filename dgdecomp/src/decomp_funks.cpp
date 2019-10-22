@@ -58,11 +58,10 @@ arma::mat ArmaCross_(
 
 // Create numerator (Func_Num)
 arma::mat ArmaNum_(
-    int vec_x, int vec_y,
+    int P, int r,
     arma::mat vec_x, arma::mat vec_y){
   
   if (r == 1) {
-    return(2)
   } else {
     
   }
