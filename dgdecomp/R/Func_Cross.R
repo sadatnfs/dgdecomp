@@ -12,13 +12,17 @@
 #' @return A vector of column products made from the unique combinations
 #' of the *data*
 #'
-#'
+#' @useDynLib dgdecomp
 #' @export
 #'
 Func_Cross <- compiler::cmpfun(function(vec_x, vec_y, size1, size2) {
 
   ## Simulate sequences of "positions" of the two vectors
-  posit_seqs <- Func_Create_Combn(length(vec_x), size1, size2)
+  if (class(vec_x) == "matrix") {
+    posit_seqs <- Func_Create_Combn(ncol(vec_x), size1, size2)
+  } else {
+    posit_seqs <- Func_Create_Combn(length(vec_x), size1, size2)
+  }
 
   ## Apply combo positioning to the input data vectors
   #### NOTE that this is traversing across columns of the combo set
@@ -34,4 +38,5 @@ Func_Cross <- compiler::cmpfun(function(vec_x, vec_y, size1, size2) {
       FUN.VALUE = 0
     )
   )
+  
 })
