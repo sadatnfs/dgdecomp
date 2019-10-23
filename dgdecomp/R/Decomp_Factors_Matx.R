@@ -34,14 +34,14 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, ...) {
         P = num_factors,
         vec_x = input_x,
         vec_y = input_y
-      ) * as.matrix(mat_y[,x] - mat_x[,x])
+      ) * as.matrix(mat_y[, x] - mat_x[, x])
     }
   )
-  
+
   ## Make sure that the output is a matrix
   if (class(effects_all) == "numeric") {
     effects_all <- t(as.matrix(effects_all))
-  } 
+  }
 
   ## Fix in case the matrix is flipped
   if (ncol(effects_all) != num_factors) {
