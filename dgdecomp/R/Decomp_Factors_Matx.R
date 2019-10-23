@@ -2,29 +2,29 @@
 #'
 #' @export
 #'
-Decomp_Factors_Matx <- function(vec_x, vec_y, return_dt = TRUE, ...) {
+Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, ...) {
   
   # Simple assertions
-  # stopifnot(length(vec_x) == length(vec_y))
+  # stopifnot(length(mat_x) == length(mat_y))
   
   # Coerce vectors into matrices
-  if (class(vec_x) == "numeric") {
-    vec_x <- t(as.matrix(vec_x))
-    vec_y <- t(as.matrix(vec_y))
+  if (class(mat_x) != "matrix") {
+    mat_x <- t(as.matrix(mat_x))
+    mat_y <- t(as.matrix(mat_y))
   } 
   
   
   # Gather the number of factors
-  num_factors <- ncol(vec_x)
+  num_factors <- ncol(mat_x)
   
   # Compute each marginal effect
   effects_all <- sapply(
     c(1:num_factors),
     function(x) Func_Inner_Sum_Matx(
       P = num_factors,
-      vec_x = vec_x[,-1 * x],
-      vec_y = vec_y[,-1 * x]
-    ) * (vec_y[,x] - vec_x[,x])
+      vec_x = mat_x[,-1 * x],
+      vec_y = mat_y[,-1 * x]
+    ) * (mat_y[,x] - mat_x[,x])
   )
   
   if (ncol(effects_all) != num_factors) {
@@ -37,7 +37,7 @@ Decomp_Factors_Matx <- function(vec_x, vec_y, return_dt = TRUE, ...) {
   
   # Assertion on whether the decomp actually worked
   stopifnot(base::all.equal(
-    apply(vec_y, 1, prod) - apply(vec_x, 1, prod),
+    apply(mat_y, 1, prod) - apply(mat_x, 1, prod),
     apply(effects_all, 1, sum),
     ...
   ))

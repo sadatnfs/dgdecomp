@@ -1,7 +1,7 @@
 Package: dgdecomp
 Type: Package
 Title: Das Gupta Decomposition on Multiplicative Factors
-Version: 1.0.2
+Version: 1.0.3
 Authors@R: person("Nafis", "Sadat", email = "sadatnfs@gmail.com",
   role = c("aut", "cre"))
 Description: Takes any P number of factors, and decomposes them into additive factors.
@@ -11,18 +11,19 @@ URL: https://github.com/sadatnfs/dgdecomp
 BugReports: https://github.com/sadatnfs/dgdecomp/issues
 NeedsCompilation: yes
 Author: Nafis Sadat [aut]
-Maintainer: Nafis Sadat <sadatnfs@uw.edu>
+Maintainer: Nafis Sadat <sadatnfs@gmail.com>
 LinkingTo: 
     Rcpp,
     RcppArmadillo
 Suggests:
     assertthat,
     testthat,
-    foreach
-Imports:
+    foreach,
     data.table,
     matrixStats, 
-    MASS,
+    MASS
+Depends:
+    data.table,
     Rcpp,
     RcppArmadillo
 License: MIT + file LICENSE

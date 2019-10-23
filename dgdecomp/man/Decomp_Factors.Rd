@@ -3,11 +3,11 @@
 \name{Decomp_Factors}
 \alias{Decomp_Factors}
 \alias{Decomp_Factors_Matx}
-\title{Compute the marginal decomposition effects from given vectors}
+\title{Compute the marginal decomposition effects from given input}
 \usage{
 Decomp_Factors(vec_x, vec_y, return_dt = TRUE, ...)
 
-Decomp_Factors_Matx(vec_x, vec_y, return_dt = TRUE, ...)
+Decomp_Factors_Matx(mat_x, mat_y, return_dt = TRUE, ...)
 }
 \arguments{
 \item{vec_x}{First input vector (represents t-1)}
@@ -17,11 +17,17 @@ Decomp_Factors_Matx(vec_x, vec_y, return_dt = TRUE, ...)
 \item{return_dt}{A boolean on whether to return a data.table or a vector}
 
 \item{...}{extra parameters to be passed to \code{all.equal()}}
+
+\item{mat_x}{First input matrix (only for \code{Decomp_Factor_Matx()})}
+
+\item{mat_y}{Second input matrix (only for \code{Decomp_Factor_Matx()})}
 }
 \value{
 A data.table or vector of decomposed effects for each factors,
 which is already multiplied by the change values
 }
 \description{
-Compute the marginal decomposition effects from given vectors
+\code{Decomp_Factor_Matx()} can be used if the input has 
+multiple rows of data to decompose, whereas \code{Decomp_Factor()} only
+takes in vectors as inputs.
 }

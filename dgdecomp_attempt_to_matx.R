@@ -3,11 +3,14 @@
 
 rm(list = ls())
 detach("package:dgdecomp")
-pacman::p_load(data.table, matrixStats, MASS, foreach, 
-               doParallel, dgdecomp, Rcpp, RcppArmadillo, RcppAlgos)
+pacman::p_load(data.table, dgdecomp, Rcpp, RcppArmadillo)
 number_of_factors <- 7
 
 
+
+dyn.load("/opt/compiled_code_for_R/setthreads.so")
+.C("setOMPthreads", 10)
+.C("setMKLthreads", 10)
 
 ### Simulate 10 time periods; P factors; 3 groups
 sim_dt <- simulate_decomp_data_fullmat(2, number_of_factors, 3)
@@ -40,24 +43,32 @@ Pfac <- number_of_factors - 1
 run_decomp_sim <- function(Time = 2, P, G) {
   sim_dt <- simulate_decomp_data_fullmat(Time, P, G)
   
-  ## Prep lag and today matrices
-  lag_mat <- as.matrix(
-    sim_dt[t == 1, .SD, .SDcols = paste0("X_", c(1:P))]
-    )
-  today_mat <- as.matrix(
-    sim_dt[t == 2, .SD, .SDcols = paste0("X_", c(1:P))]
-    )
+  # ## Prep lag and today matrices
+  # lag_mat <- as.matrix(
+  #   sim_dt[t == 1, .SD, .SDcols = paste0("X_", c(1:P))]
+  #   )
+  # today_mat <- as.matrix(
+  #   sim_dt[t == 2, .SD, .SDcols = paste0("X_", c(1:P))]
+  #   )
+  # 
+  # decomp_out_DT <- Decomp_Factors_Matx(
+  #   lag_mat,
+  #   today_mat,
+  #   tolerance = 1e-5
+  # )
+  # 
+  # data.table::setnames(
+  #   decomp_out_DT,
+  #   paste0("decomp_", paste0("X_", c(1:P)))
+  # )
   
-  decomp_out_DT <- Decomp_Factors_Matx(
-    lag_mat,
-    today_mat,
-    tolerance = 1e-5
-  )
+  ## Use the data.table method for doing decomp
+  #### NOTE that there's an overhead of computing the lag columns
+  decomp_out_DT <- Decomp_on_DT(input_data = sim_dt,
+               factor_names = paste0("X_", c(1:P)),
+               bycol = c("Id"),
+               time_col = "t")
   
-  data.table::setnames(
-    decomp_out_DT,
-    paste0("decomp_", paste0("X_", c(1:P)))
-  )
   
   true_delta <- sim_dt[,
                        .(Ydelta = Y - shift(Y)),
@@ -71,10 +82,6 @@ run_decomp_sim <- function(Time = 2, P, G) {
 }
 
 
-
-dyn.load("/opt/compiled_code_for_R/setthreads.so")
-.C("setOMPthreads", 10)
-.C("setMKLthreads", 10)
 
 for(grou in c(5000,10000)) {
     for(facto in 5:12)  {
