@@ -6,7 +6,7 @@
 #' @param factor_names A vector of column names for the factor
 #'
 #' @param time_col A string for the column name
-#' 
+#'
 #' @param bycol The 'by' slicer which must make sure that the data is
 #' reduced to just 2 rows per group after slicing
 #'
@@ -22,21 +22,23 @@
 #'
 Decomp_on_DT <- compiler::cmpfun(function(input_data,
                                           factor_names,
-                                          time_col, 
+                                          time_col,
                                           bycol, ...) {
 
   ## Create the lag and current matrices from the DT
-  lag_mat <- input_data[, 
-                        as.list(as.matrix(.SD)[1,]), 
-                        .SDcols = factor_names, by = bycol]
-  curr_mat <- input_data[, 
-                        as.list(as.matrix(.SD)[2,]), 
-                        .SDcols = factor_names, by = bycol]
-  
+  lag_mat <- input_data[,
+    as.list(as.matrix(.SD)[1, ]),
+    .SDcols = factor_names, by = bycol
+  ]
+  curr_mat <- input_data[,
+    as.list(as.matrix(.SD)[2, ]),
+    .SDcols = factor_names, by = bycol
+  ]
+
   ## Make sure that the two datasets' dimensions line up
   stopifnot((ncol(lag_mat) == ncol(curr_mat)) & (nrow(lag_mat) == nrow(curr_mat)))
-  
-  
+
+
   ## Apply decomp to with each of these new matrices
   decomp_output <- Decomp_Factors_Matx(
     mat_x = as.matrix(lag_mat[, .SD, .SDcols = factor_names]),
@@ -46,7 +48,7 @@ Decomp_on_DT <- compiler::cmpfun(function(input_data,
 
   ## cbind the bycols to this output
   decomp_output <- cbind(lag_mat[, .SD, .SDcols = bycol], decomp_output)
-  
+
   data.table::setnames(
     decomp_output,
     c(bycol, paste0("decomp_", factor_names))

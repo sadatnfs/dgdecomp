@@ -265,17 +265,17 @@ RcppExport SEXP ArmaInner(
 // // [[Rcpp::Export]]
 // RcppExport SEXP CustomCombn(
 //     SEXP Pfac, SEXP size1, SEXP size2) {
-
+// 
 // 	List outthis = List::create(discreture::combinations(as<int>(Pfac), as<int>(size1)));
-	
+// 	
 // 	NumericMatrix outz(as<int>(Pfac), as<int>(size1));
 // 	for(int row = 0; row < outz.rows(); row++) {
 // 		for(int col = 0; col < outz.cols(); col++) {
 // 			outz(row,col) = outthis[0](row)[col];
 // 		}
 // 	}
-
-
+// 
+// 
 // 	return Rcpp::wrap(outz);
 
 // }

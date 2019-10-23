@@ -1,15 +1,15 @@
 #' @title Compute the marginal decomposition effects from given input
-#' 
-#' @description \code{Decomp_Factor_Matx()} can be used if the input has 
+#'
+#' @description \code{Decomp_Factor_Matx()} can be used if the input has
 #' multiple rows of data to decompose, whereas \code{Decomp_Factor()} only
 #' takes in vectors as inputs.
 #'
 #' @param vec_x First input vector (represents t-1)
 #'
 #' @param vec_y Second input vector (represents t)
-#' 
+#'
 #' @param mat_x First input matrix (only for \code{Decomp_Factor_Matx()})
-#' 
+#'
 #' @param mat_y Second input matrix (only for \code{Decomp_Factor_Matx()})
 #'
 #' @param return_dt A boolean on whether to return a data.table or a vector

@@ -38,5 +38,4 @@ Func_Cross <- compiler::cmpfun(function(vec_x, vec_y, size1, size2) {
       FUN.VALUE = 0
     )
   )
-  
 })

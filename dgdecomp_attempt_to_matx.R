@@ -1,5 +1,6 @@
 
 
+#### Just some testing sandbox code
 
 rm(list = ls())
 detach("package:dgdecomp")
@@ -42,7 +43,7 @@ Pfac <- number_of_factors - 1
 
 run_decomp_sim <- function(Time = 2, P, G) {
   sim_dt <- simulate_decomp_data_fullmat(Time, P, G)
-  
+
   # ## Prep lag and today matrices
   # lag_mat <- as.matrix(
   #   sim_dt[t == 1, .SD, .SDcols = paste0("X_", c(1:P))]
@@ -50,52 +51,48 @@ run_decomp_sim <- function(Time = 2, P, G) {
   # today_mat <- as.matrix(
   #   sim_dt[t == 2, .SD, .SDcols = paste0("X_", c(1:P))]
   #   )
-  # 
+  #
   # decomp_out_DT <- Decomp_Factors_Matx(
   #   lag_mat,
   #   today_mat,
   #   tolerance = 1e-5
   # )
-  # 
+  #
   # data.table::setnames(
   #   decomp_out_DT,
   #   paste0("decomp_", paste0("X_", c(1:P)))
   # )
-  
+
   ## Use the data.table method for doing decomp
   #### NOTE that there's an overhead of computing the lag columns
-  decomp_out_DT <- Decomp_on_DT(input_data = sim_dt,
-               factor_names = paste0("X_", c(1:P)),
-               bycol = c("Id"),
-               time_col = "t")
-  
-  
+  decomp_out_DT <- Decomp_on_DT(
+    input_data = sim_dt,
+    factor_names = paste0("X_", c(1:P)),
+    bycol = c("Id"),
+    time_col = "t"
+  )
+
+
   true_delta <- sim_dt[,
-                       .(Ydelta = Y - shift(Y)),
-                       by = "Id"
-                       ][!is.na(Ydelta), .(Id, Ydelta)]
+    .(Ydelta = Y - shift(Y)),
+    by = "Id"
+  ][!is.na(Ydelta), .(Id, Ydelta)]
   decomp_delta <- decomp_out_DT[, .(decomp_delta = rowSums(.SD)),
-  .SDcols = paste0("decomp_X_", 1:P)
+    .SDcols = paste0("decomp_X_", 1:P)
   ]
-  
+
   return(decomp_delta)
 }
 
 
 
-for(grou in c(5000,10000)) {
-    for(facto in 5:12)  {
-        tmp <- system.time(run_decomp_sim(P = facto, G = grou))[3]
-        print(paste0(
-          "factors = ", facto,
-          " groups = ", grou,
-          " time_elapsed = ", format(tmp, digits = 4)
-        ))
-    }
+for (grou in c(5000, 10000)) {
+  for (facto in 5:12) {
+    tmp <- system.time(run_decomp_sim(P = facto, G = grou))[3]
+    print(paste0(
+      "factors = ", facto,
+      " groups = ", grou,
+      " time_elapsed = ", format(tmp, digits = 4)
+    ))
+  }
 }
-
-
-
-
-
-
