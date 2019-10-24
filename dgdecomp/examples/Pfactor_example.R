@@ -43,3 +43,4 @@ decomp_delta <- decomp_out_DT[, .(Id,
 ]
 
 (all.equal(true_delta$Ydelta, decomp_delta$decomp_delta))
+

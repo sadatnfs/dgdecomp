@@ -86,8 +86,8 @@ run_decomp_sim <- function(Time = 2, P, G) {
 
 
 
-for (grou in c(5000, 10000)) {
-  for (facto in 5:12) {
+for (grou in c(20000)) {
+  for (facto in 5:10) {
     tmp <- system.time(run_decomp_sim(P = facto, G = grou))[3]
     print(paste0(
       "factors = ", facto,
