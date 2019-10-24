@@ -4,7 +4,7 @@
 
 rm(list = ls())
 detach("package:dgdecomp")
-pacman::p_load(data.table, dgdecomp, Rcpp, RcppArmadillo)
+pacman::p_load(data.table, dgdecomp, Rcpp, RcppArmadillo, microbenchmark)
 number_of_factors <- 7
 
 
@@ -41,7 +41,7 @@ Pfac <- number_of_factors - 1
 
 
 
-run_decomp_sim <- function(Time = 2, P, G) {
+run_decomp_sim <- function(Time = 2, P, G, use_cpp) {
   sim_dt <- simulate_decomp_data_fullmat(Time, P, G)
 
   # ## Prep lag and today matrices
@@ -69,7 +69,8 @@ run_decomp_sim <- function(Time = 2, P, G) {
     input_data = sim_dt,
     factor_names = paste0("X_", c(1:P)),
     bycol = c("Id"),
-    time_col = "t"
+    time_col = "t",
+    use_cpp = use_cpp
   )
 
 
@@ -85,14 +86,36 @@ run_decomp_sim <- function(Time = 2, P, G) {
 }
 
 
-
-for (grou in c(20000)) {
-  for (facto in 5:10) {
-    tmp <- system.time(run_decomp_sim(P = facto, G = grou))[3]
-    print(paste0(
-      "factors = ", facto,
-      " groups = ", grou,
-      " time_elapsed = ", format(tmp, digits = 4)
-    ))
+run_sim <- function(cppuse) {
+  for (grou in c(5000, 10000, 15000)) {
+    for (facto in 5:10) {
+      tmp <- system.time(
+        run_decomp_sim(P = facto, G = grou, use_cpp = cppuse))[3]
+      print(paste0(
+        "factors = ", facto,
+        " groups = ", grou,
+        " time_elapsed = ", format(tmp, digits = 4)
+      ))
+    }
   }
 }
+
+
+
+mbm <- microbenchmark(
+  withcpp = run_sim(TRUE),
+  without_cpp = run_sim(FALSE),
+  times=5
+)
+mbm
+
+
+
+
+
+
+
+
+
+
+

@@ -2,10 +2,8 @@
 #'
 #' @export
 #'
-Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, ...) {
-
-  # Simple assertions
-  # stopifnot(length(mat_x) == length(mat_y))
+Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
+                                ...) {
 
   # Coerce vectors into matrices
   if (class(mat_x) != "matrix") {
@@ -18,25 +16,30 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, ...) {
   num_factors <- ncol(mat_x)
 
   # Compute each marginal effect
-  effects_all <- sapply(
-    c(1:num_factors),
-    function(x) {
-      input_x <- mat_x[, -1 * x]
-      input_y <- mat_y[, -1 * x]
-
-      ## Edge case for inputting vectors
-      if (class(input_x) != "matrix") {
-        input_x <- t(as.matrix(input_x))
-        input_y <- t(as.matrix(input_y))
+  if (use_cpp) {
+    effects_all <- .Call("ArmaDFInnerLoop", num_factors, mat_x, mat_y)
+  } else {
+    effects_all <- sapply(
+      c(1:num_factors),
+      function(x) {
+        input_x <- mat_x[, -1 * x]
+        input_y <- mat_y[, -1 * x]
+        
+        ## Edge case for inputting vectors
+        if (class(input_x) != "matrix") {
+          input_x <- t(as.matrix(input_x))
+          input_y <- t(as.matrix(input_y))
+        }
+        
+        Func_Inner_Sum_Matx(
+          P = num_factors,
+          vec_x = input_x,
+          vec_y = input_y
+        ) * as.matrix(mat_y[, x] - mat_x[, x])
       }
-
-      Func_Inner_Sum_Matx(
-        P = num_factors,
-        vec_x = input_x,
-        vec_y = input_y
-      ) * as.matrix(mat_y[, x] - mat_x[, x])
-    }
-  )
+    )
+  }
+  
 
   ## Make sure that the output is a matrix
   if (class(effects_all) == "numeric") {

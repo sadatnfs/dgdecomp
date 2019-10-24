@@ -7,7 +7,8 @@
 \usage{
 Decomp_Factors(vec_x, vec_y, return_dt = TRUE, ...)
 
-Decomp_Factors_Matx(mat_x, mat_y, return_dt = TRUE, ...)
+Decomp_Factors_Matx(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
+  ...)
 }
 \arguments{
 \item{vec_x}{First input vector (represents t-1)}
@@ -16,18 +17,22 @@ Decomp_Factors_Matx(mat_x, mat_y, return_dt = TRUE, ...)
 
 \item{return_dt}{A boolean on whether to return a data.table or a vector}
 
-\item{...}{extra parameters to be passed to \code{all.equal()}}
+\item{...}{extra parameters to be passed to \code{all.equal()}, for e.g.
+the tolerance.}
 
 \item{mat_x}{First input matrix (only for \code{Decomp_Factor_Matx()})}
 
 \item{mat_y}{Second input matrix (only for \code{Decomp_Factor_Matx()})}
+
+\item{use_cpp}{A boolean on whether to use the C++ compiled code or not.
+Default: TRUE}
 }
 \value{
 A data.table or vector of decomposed effects for each factors,
 which is already multiplied by the change values
 }
 \description{
-\code{Decomp_Factor_Matx()} can be used if the input has 
+\code{Decomp_Factor_Matx()} can be used if the input has
 multiple rows of data to decompose, whereas \code{Decomp_Factor()} only
 takes in vectors as inputs.
 }

@@ -46,20 +46,20 @@ int nchook(const int N, const int K) {
   return nCk;
 }
 
-int fact(int n);    
-double nCr(const int n, const int r)  
-{   
-  return fact(n) / (fact(r) * fact(n - r));   
-}   
+int fact(int n);
+double nCr(const int n, const int r)
+{
+  return fact(n) / (fact(r) * fact(n - r));
+}
 
-// Returns factorial of n   
-int fact(const int n)   
-{   
-  int res = 1;  
-  for (int i = 2; i <= n; i++)  
-    res = res * i;  
-  return res;   
-} 
+// Returns factorial of n
+int fact(const int n)
+{
+  int res = 1;
+  for (int i = 2; i <= n; i++)
+    res = res * i;
+  return res;
+}
 
 
 // Create cominations
@@ -293,7 +293,7 @@ RcppExport SEXP ArmaInner(
 
 // Inner sum (Func_Inner_Sum) [returns vector of size vec_x_.n_rows]
 // this will loop over 1:P_upper and call ArmaInner, and add the values
-arma::vec ArmaInnerSum_ (
+arma::colvec ArmaInnerSum_ (
   const int P,
   const arma::mat vec_x, const arma::mat vec_y) {
 
@@ -304,10 +304,10 @@ arma::vec ArmaInnerSum_ (
   arma::vec sum_count = zeros<vec>(vec_x.n_rows);
 
   // Loop
-  for(int Rx = 1; Rx <= P_upper; Rx++) {
+  for (int Rx = 1; Rx <= P_upper; Rx++) {
     sum_count = sum_count + ArmaInner_(
-      P, Rx, vec_x, vec_y
-      );
+                  P, Rx, vec_x, vec_y
+                );
   }
 
   return sum_count;
@@ -324,6 +324,59 @@ RcppExport SEXP ArmaInnerSum(
                       as<int>(P_),
                       as<arma::mat>(vec_x_),
                       as<arma::mat>(vec_y_)
+                    ));
+
+}
+
+
+// The marginal effect loop inside Decomp_Factors_Matx
+arma::mat ArmaDFInnerLoop_(
+  const int num_facts,
+  const arma::mat mat_x, const arma::mat mat_y) {
+
+  // Allocate output matrix
+  arma::mat outmat(mat_x.n_rows, num_facts);
+
+  // We'll need to make copies of the inputs
+  arma::mat mat_x_copy = mat_x;
+  arma::mat mat_y_copy = mat_y;
+
+
+  // We will loop over the factors 1 through num_facts
+  for (int x = 1; x < num_facts + 1; x++) {
+
+    // Remove the x'th factor from input matrix and
+    // use over ArmaInnerSum_()
+    arma::mat xshed = mat_x;
+    arma::mat yshed = mat_y;
+
+    // We need to refer from the original input copies everytime
+    // because shed_col() is a self-inflicted void funk
+    xshed.shed_col(x - 1);
+    yshed.shed_col(x - 1);
+
+    outmat.col(x - 1) = ArmaInnerSum_(num_facts, xshed, yshed);
+
+    // Multiply with the sliced matrix
+    arma::colvec tmpcol = mat_y.col(x - 1) - mat_x.col(x - 1);
+
+    outmat.col(x - 1) = outmat.col(x - 1) % tmpcol;
+
+  }
+
+  return outmat;
+
+}
+
+// [[Rcpp::Export]]
+RcppExport SEXP ArmaDFInnerLoop(
+  const SEXP num_facts,
+  SEXP mat_x_, SEXP mat_y_) {
+
+  return Rcpp::wrap(ArmaDFInnerLoop_(
+                      as<int>(num_facts),
+                      as<arma::mat>(mat_x_),
+                      as<arma::mat>(mat_y_)
                     ));
 
 }

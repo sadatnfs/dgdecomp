@@ -13,8 +13,12 @@
 #' @param mat_y Second input matrix (only for \code{Decomp_Factor_Matx()})
 #'
 #' @param return_dt A boolean on whether to return a data.table or a vector
+#' 
+#' @param use_cpp A boolean on whether to use the C++ compiled code or not.
+#' Default: TRUE
 #'
-#' @param ... extra parameters to be passed to \code{all.equal()}
+#' @param ... extra parameters to be passed to \code{all.equal()}, for e.g.
+#' the tolerance.
 #'
 #' @return A data.table or vector of decomposed effects for each factors,
 #' which is already multiplied by the change values

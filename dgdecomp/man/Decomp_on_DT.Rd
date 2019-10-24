@@ -4,7 +4,8 @@
 \alias{Decomp_on_DT}
 \title{Apply DG Decomposition to data.table columns}
 \usage{
-Decomp_on_DT(input_data, factor_names, time_col, bycol, ...)
+Decomp_on_DT(input_data, factor_names, time_col, bycol, use_cpp = TRUE,
+  ...)
 }
 \arguments{
 \item{input_data}{A data.table with the factors, which must already
@@ -16,6 +17,9 @@ be sorted}
 
 \item{bycol}{The 'by' slicer which must make sure that the data is
 reduced to just 2 rows per group after slicing}
+
+\item{use_cpp}{A boolean on whether to use the C++ compiled code for the
+factor for-loop or not (passes to Decomp_Factor_Matx()). Default: TRUE}
 
 \item{...}{extra parameters to be passed through \code{Decomp_Factors()}
 to \code{all.equal()}}
