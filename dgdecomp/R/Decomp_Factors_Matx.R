@@ -3,6 +3,7 @@
 #' @export
 #'
 Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
+                                parallel = 1,
                                 ...) {
 
   # Coerce vectors into matrices
@@ -24,22 +25,23 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
       function(x) {
         input_x <- mat_x[, -1 * x]
         input_y <- mat_y[, -1 * x]
-        
+
         ## Edge case for inputting vectors
         if (class(input_x) != "matrix") {
           input_x <- t(as.matrix(input_x))
           input_y <- t(as.matrix(input_y))
         }
-        
+
         Func_Inner_Sum_Matx(
           P = num_factors,
           vec_x = input_x,
-          vec_y = input_y
+          vec_y = input_y,
+          threads = parallel
         ) * as.matrix(mat_y[, x] - mat_x[, x])
       }
     )
   }
-  
+
 
   ## Make sure that the output is a matrix
   if (class(effects_all) == "numeric") {

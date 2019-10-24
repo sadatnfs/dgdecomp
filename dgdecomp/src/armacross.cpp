@@ -4,6 +4,7 @@
 
 // #include <iterator>
 #include <vector>
+#include <thread>
 #include <algorithm>
 #include <cstdlib>
 // #include <discreture.hpp>
@@ -30,7 +31,7 @@ using namespace arma;
 
 
 // Create n-choose-k value
-int nchook(const int N, const int K) {
+long int nchook(const int N, const int K) {
   int nCk = 0;
   // if (K * 2 > N) K = N - K;
   if (K == 0) {
@@ -46,14 +47,14 @@ int nchook(const int N, const int K) {
   return nCk;
 }
 
-int fact(int n);
-double nCr(const int n, const int r)
+long int fact(int n);
+long int nCr(const int n, const int r)
 {
   return fact(n) / (fact(r) * fact(n - r));
 }
 
 // Returns factorial of n
-int fact(const int n)
+long int fact(const int n)
 {
   int res = 1;
   for (int i = 2; i <= n; i++)
@@ -70,7 +71,7 @@ arma::mat ArmaCombn_(int N, int K) {
 
 
   // Create n-choose-k value
-  int nCk = nCr(N, K);
+  long int nCk = nchook(N, K);
 
   // Create output matrix
   int matrow = nCk;
@@ -332,7 +333,8 @@ RcppExport SEXP ArmaInnerSum(
 // The marginal effect loop inside Decomp_Factors_Matx
 arma::mat ArmaDFInnerLoop_(
   const int num_facts,
-  const arma::mat mat_x, const arma::mat mat_y) {
+  const arma::mat mat_x, const arma::mat mat_y,
+  const int threads) {
 
   // Allocate output matrix
   arma::mat outmat(mat_x.n_rows, num_facts);
@@ -343,25 +345,29 @@ arma::mat ArmaDFInnerLoop_(
 
 
   // We will loop over the factors 1 through num_facts
-  for (int x = 1; x < num_facts + 1; x++) {
-
-    // Remove the x'th factor from input matrix and
-    // use over ArmaInnerSum_()
-    arma::mat xshed = mat_x;
-    arma::mat yshed = mat_y;
-
-    // We need to refer from the original input copies everytime
-    // because shed_col() is a self-inflicted void funk
-    xshed.shed_col(x - 1);
-    yshed.shed_col(x - 1);
-
-    outmat.col(x - 1) = ArmaInnerSum_(num_facts, xshed, yshed);
-
-    // Multiply with the sliced matrix
-    arma::colvec tmpcol = mat_y.col(x - 1) - mat_x.col(x - 1);
-
-    outmat.col(x - 1) = outmat.col(x - 1) % tmpcol;
-
+  #pragma omp parallel num_threads(threads)
+  {
+    #pragma omp for
+    for (int x = 1; x < num_facts + 1; x++) {
+  
+      // Remove the x'th factor from input matrix and
+      // use over ArmaInnerSum_()
+      arma::mat xshed = mat_x;
+      arma::mat yshed = mat_y;
+  
+      // We need to refer from the original input copies everytime
+      // because shed_col() is a self-inflicted void funk
+      xshed.shed_col(x - 1);
+      yshed.shed_col(x - 1);
+  
+      outmat.col(x - 1) = ArmaInnerSum_(num_facts, xshed, yshed);
+  
+      // Multiply with the sliced matrix
+      arma::colvec tmpcol = mat_y.col(x - 1) - mat_x.col(x - 1);
+  
+      outmat.col(x - 1) = outmat.col(x - 1) % tmpcol;
+  
+    }
   }
 
   return outmat;
@@ -371,12 +377,14 @@ arma::mat ArmaDFInnerLoop_(
 // [[Rcpp::Export]]
 RcppExport SEXP ArmaDFInnerLoop(
   const SEXP num_facts,
-  SEXP mat_x_, SEXP mat_y_) {
+  SEXP mat_x_, SEXP mat_y_,
+  const SEXP threads_ ) {
 
   return Rcpp::wrap(ArmaDFInnerLoop_(
                       as<int>(num_facts),
                       as<arma::mat>(mat_x_),
-                      as<arma::mat>(mat_y_)
+                      as<arma::mat>(mat_y_),
+                      as<int>(threads_)
                     ));
 
 }

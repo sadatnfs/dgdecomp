@@ -3,7 +3,7 @@
 #### Just some testing sandbox code
 
 rm(list = ls())
-detach("package:dgdecomp")
+# detach("package:dgdecomp")
 pacman::p_load(data.table, dgdecomp, Rcpp, RcppArmadillo, microbenchmark)
 number_of_factors <- 7
 
@@ -86,9 +86,9 @@ run_decomp_sim <- function(Time = 2, P, G, use_cpp) {
 }
 
 
-run_sim <- function(cppuse) {
-  for (grou in c(5000, 10000, 15000)) {
-    for (facto in 5:10) {
+run_sim <- function(cppuse, factoC = 5:10) {
+  for (grou in c(5000)) {
+    for (facto in factoC) {
       tmp <- system.time(
         run_decomp_sim(P = facto, G = grou, use_cpp = cppuse))[3]
       print(paste0(
@@ -100,14 +100,15 @@ run_sim <- function(cppuse) {
   }
 }
 
+run_sim(TRUE, 15)
+# run_sim(FALSE, 13)
 
-
-mbm <- microbenchmark(
-  withcpp = run_sim(TRUE),
-  without_cpp = run_sim(FALSE),
-  times=5
-)
-mbm
+# mbm <- microbenchmark(
+#   withcpp = run_sim(TRUE),
+#   without_cpp = run_sim(FALSE),
+#   times=5
+# )
+# mbm
 
 
 

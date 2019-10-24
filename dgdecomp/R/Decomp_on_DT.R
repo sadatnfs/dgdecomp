@@ -9,10 +9,10 @@
 #'
 #' @param bycol The 'by' slicer which must make sure that the data is
 #' reduced to just 2 rows per group after slicing
-#' 
+#'
 #' @param use_cpp A boolean on whether to use the C++ compiled code for the
 #' factor for-loop or not (passes to Decomp_Factor_Matx()). Default: TRUE
-#' 
+#'
 #' @param ... extra parameters to be passed through \code{Decomp_Factors()}
 #' to \code{all.equal()}
 #'
@@ -26,7 +26,7 @@
 Decomp_on_DT <- compiler::cmpfun(function(input_data,
                                           factor_names,
                                           time_col,
-                                          bycol, 
+                                          bycol,
                                           use_cpp = TRUE,
                                           ...) {
 

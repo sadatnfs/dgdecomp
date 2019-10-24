@@ -13,9 +13,11 @@
 #' @param mat_y Second input matrix (only for \code{Decomp_Factor_Matx()})
 #'
 #' @param return_dt A boolean on whether to return a data.table or a vector
-#' 
+#'
 #' @param use_cpp A boolean on whether to use the C++ compiled code or not.
 #' Default: TRUE
+#'
+#' @param parallel Number of threads. Default : 1
 #'
 #' @param ... extra parameters to be passed to \code{all.equal()}, for e.g.
 #' the tolerance.
@@ -27,7 +29,9 @@
 #'
 #' @export
 #'
-Decomp_Factors <- compiler::cmpfun(function(vec_x, vec_y, return_dt = TRUE, ...) {
+Decomp_Factors <- compiler::cmpfun(function(vec_x, vec_y,
+                                            return_dt = TRUE,
+                                            ...) {
 
   # Simple assertions
   # stopifnot(length(vec_x) == length(vec_y))

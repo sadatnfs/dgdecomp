@@ -6,6 +6,8 @@
 #'
 #' @param vec_y Second input vector
 #'
+#' @param threads Number of OpenMP threads to use. Default: 1
+#'
 #' @return A numeric value with the full inner sum for the given effect
 #'
 #' @export
