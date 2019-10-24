@@ -4,6 +4,7 @@
 
 // #include <iterator>
 #include <vector>
+#include <algorithm>
 #include <cstdlib>
 // #include <discreture.hpp>
 // #include <Rcpp.h>
@@ -28,45 +29,122 @@ using namespace arma;
 
 
 
+// Create n-choose-k value
+int nchook(int N, int K) {
+  int nCk = 0;
+  if (K * 2 > N) K = N-K;
+  if (K == 0) {
+    nCk = 1;
+  } else {
+    nCk = N;
+    for( int i = 2; i <= K; ++i ) {
+      nCk *= (N-i+1);
+      nCk /= i;
+    }
+  }
+  
+  return nCk;
+}
+
+// Create cominations
+arma::mat ArmaCombn_(int N, int K) {
+  
+  std::string bitmask(K, 1); // K leading 1s
+  bitmask.resize(N, 0); // N-K trailing 0s
+  
+  
+  // Create n-choose-k value
+  int nCk = nchook(N, K);
+  
+  // Create output matrix
+  int matrow = nCk;
+  int matcol = K;
+  
+  // print integers and permute bitmask
+  // and store in a VECTOR first
+  arma::vec ech(matrow*matcol);
+  int echh = 0;
+  do {
+    for (int i = 0; i < N; ++i) // [0..N-1] integers
+    {
+      if (bitmask[i]) {
+        ech[echh] = i;
+        echh++;
+        // std::cout << " " << i;
+      }
+    }
+    // std::cout << std::endl;
+  } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+  
+  
+  // Output matrix (from vector)
+  arma::mat outmat(matrow, matcol);
+  
+  int counter = 0;
+  for(int i = 0; i < matrow; i++) {
+    for(int j = 0; j < matcol; j++) {
+      outmat(i, j) = ech[counter] + 1; // +1 for usage in R space
+      counter++;
+    }
+  }
+  
+  
+  // Finally, transpose this matrix and return!
+  return arma::trans(outmat);
+  
+}
+
+
+// [[Rcpp::Export]]
+RcppExport SEXP ArmaCombn(
+    SEXP N_, SEXP K_) {
+  
+  return Rcpp::wrap(ArmaCombn_(
+      as<int>(N_), as<int>(K_)
+  ));
+  
+}
+
+
 //// Output the positioned matrix (Func_Cross)
 arma::mat ArmaCross_(
     arma::mat vec_x, arma::mat vec_y,
     arma::mat vec_x_pos, arma::mat vec_y_pos) {
-
+  
   
   // mkl_set_num_threads(10);
   omp_set_num_threads(10);
   
-	// Create output matrix
-	arma::mat prod_inner(vec_x.n_rows, vec_x_pos.n_cols);
-
-	// Temp store
-	double tmpprod = 1.;
-
-	for ( int row1 = 0; row1 < prod_inner.n_rows; row1++) {
-
-		for ( int col1 = 0; col1 < vec_x_pos.n_cols; col1++) { // invariant between vec_x_pos and vec_y_pos
-
-			// Go over each row of vec_x_pos
-			for ( int row2 = 0; row2 < vec_x_pos.n_rows; row2++) { // vec_x_pos specific
-				tmpprod = tmpprod * vec_x(row1, vec_x_pos(row2, col1) - 1); // -1 correction for zero index
-			}
-
-			// Go over each row of vec_y_pos
-			for ( int row3 = 0; row3 < vec_y_pos.n_rows; row3++) { // vec_x_pos specific
-				tmpprod = tmpprod * vec_y(row1, vec_y_pos(row3, col1) - 1); // -1 correction for zero index
-			}
-
-			// Record in prod_inner
-			prod_inner(row1, col1) = tmpprod;
-			tmpprod = 1.;
-
-		}
-
-	}
-
-	return prod_inner;
-
+  // Create output matrix
+  arma::mat prod_inner(vec_x.n_rows, vec_x_pos.n_cols);
+  
+  // Temp store
+  double tmpprod = 1.;
+  
+  for ( int row1 = 0; row1 < prod_inner.n_rows; row1++) {
+    
+    for ( int col1 = 0; col1 < vec_x_pos.n_cols; col1++) { // invariant between vec_x_pos and vec_y_pos
+      
+      // Go over each row of vec_x_pos
+      for ( int row2 = 0; row2 < vec_x_pos.n_rows; row2++) { // vec_x_pos specific
+        tmpprod = tmpprod * vec_x(row1, vec_x_pos(row2, col1) - 1); // -1 correction for zero index
+      }
+      
+      // Go over each row of vec_y_pos
+      for ( int row3 = 0; row3 < vec_y_pos.n_rows; row3++) { // vec_x_pos specific
+        tmpprod = tmpprod * vec_y(row1, vec_y_pos(row3, col1) - 1); // -1 correction for zero index
+      }
+      
+      // Record in prod_inner
+      prod_inner(row1, col1) = tmpprod;
+      tmpprod = 1.;
+      
+    }
+    
+  }
+  
+  return prod_inner;
+  
 }
 
 
@@ -75,18 +153,18 @@ arma::mat ArmaCross_(
 RcppExport SEXP ArmaCross(
     SEXP vec_x_, SEXP vec_y_,
     SEXP vec_x_pos_, SEXP vec_y_pos_) {
-
-	// Must coerce vector to arma::vec type (or whatever type to feed into funk)
-	// so that we convert from input type from R (SEXP) to whatever our funk needs
-
-	return Rcpp::wrap(
-	           ArmaCross_(
-	               as<arma::mat>(vec_x_),
-	               as<arma::mat>(vec_y_),
-	               as<arma::mat>(vec_x_pos_),
-	               as<arma::mat>(vec_y_pos_)
-	           ));
-
+  
+  // Must coerce vector to arma::vec type (or whatever type to feed into funk)
+  // so that we convert from input type from R (SEXP) to whatever our funk needs
+  
+  return Rcpp::wrap(
+    ArmaCross_(
+      as<arma::mat>(vec_x_),
+      as<arma::mat>(vec_y_),
+      as<arma::mat>(vec_x_pos_),
+      as<arma::mat>(vec_y_pos_)
+    ));
+  
 }
 
 
@@ -103,37 +181,37 @@ arma::vec ArmaNum_(
     int P, int r,
     arma::mat vec_x, arma::mat vec_y,
     arma::mat vec_x_pos, arma::mat vec_y_pos) {
-
-	// Create output placeholder
-	arma::vec this_count(vec_x.n_rows);
-
-	if (r == 1) {
-		this_count = arma::prod(vec_x, 1) + arma::prod(vec_y, 1);
-		return this_count;
-	} else {
-
-		// Pick : P-r from SMALL and mult with r-1 from CAPS
-		// with : P-r from CAPS and mult with r-1 from SMALL
-
-		int size1 = P - r;  // r < P and so will never be >= P-1
-		int size2 = r - 1; //  Will never be <= 1 because r > 1
-
-		// Create combinations of size1 and size2,
-		// where size2 will be a reversal
-
-		// First, P-r small and r-1 caps:
-		this_count = arma::sum(ArmaCross_(vec_x, vec_y, vec_x_pos, vec_y_pos), 1);
-
-		// Next, P-r caps and r-1 small:
-		// ONLY applicable if we are not comparing identical sizes
-		if (size1 != size2) {
-			this_count = this_count + arma::sum(ArmaCross_(vec_x, vec_y, vec_y_pos, vec_x_pos), 1);
-		}
-
-		return this_count;
-
-	}
-
+  
+  // Create output placeholder
+  arma::vec this_count(vec_x.n_rows);
+  
+  if (r == 1) {
+    this_count = arma::prod(vec_x, 1) + arma::prod(vec_y, 1);
+    return this_count;
+  } else {
+    
+    // Pick : P-r from SMALL and mult with r-1 from CAPS
+    // with : P-r from CAPS and mult with r-1 from SMALL
+    
+    int size1 = P - r;  // r < P and so will never be >= P-1
+    int size2 = r - 1; //  Will never be <= 1 because r > 1
+    
+    // Create combinations of size1 and size2,
+    // where size2 will be a reversal
+    
+    // First, P-r small and r-1 caps:
+    this_count = arma::sum(ArmaCross_(vec_x, vec_y, vec_x_pos, vec_y_pos), 1);
+    
+    // Next, P-r caps and r-1 small:
+    // ONLY applicable if we are not comparing identical sizes
+    if (size1 != size2) {
+      this_count = this_count + arma::sum(ArmaCross_(vec_x, vec_y, vec_y_pos, vec_x_pos), 1);
+    }
+    
+    return this_count;
+    
+  }
+  
 }
 
 // [[Rcpp::Export]]
@@ -141,31 +219,31 @@ RcppExport SEXP ArmaNum(
     SEXP P_, SEXP r_,
     SEXP vec_x_, SEXP vec_y_,
     SEXP vec_x_pos_, SEXP vec_y_pos_) {
-
-	return Rcpp::wrap(ArmaNum_(
-	                      as<int>(P_), as<int>(r_),
-	                      as<arma::mat>(vec_x_),
-	                      as<arma::mat>(vec_y_),
-	                      as<arma::mat>(vec_x_pos_),
-	                      as<arma::mat>(vec_y_pos_)
-	                  ));
-
+  
+  return Rcpp::wrap(ArmaNum_(
+      as<int>(P_), as<int>(r_),
+      as<arma::mat>(vec_x_),
+      as<arma::mat>(vec_y_),
+      as<arma::mat>(vec_x_pos_),
+      as<arma::mat>(vec_y_pos_)
+  ));
+  
 }
 
 
 int fact(int n);   
 double nCr(int n, int r) 
 { 
-    return fact(n) / (fact(r) * fact(n - r)); 
+  return fact(n) / (fact(r) * fact(n - r)); 
 } 
-  
+
 // Returns factorial of n 
 int fact(int n) 
 { 
-    int res = 1; 
-    for (int i = 2; i <= n; i++) 
-        res = res * i; 
-    return res; 
+  int res = 1; 
+  for (int i = 2; i <= n; i++) 
+    res = res * i; 
+  return res; 
 } 
 
 
@@ -174,13 +252,13 @@ arma::vec ArmaInner_(
     int P, int r,
     arma::mat vec_x, arma::mat vec_y,
     arma::mat vec_x_pos, arma::mat vec_y_pos) {
-
-	if (r == 1) {
-		return (arma::prod(vec_x, 1) + arma::prod(vec_y, 1)) / P;
-	} else {
-		return ArmaNum_(P, r, vec_x, vec_y, vec_x_pos, vec_y_pos) / (P * nCr(P - 1, r - 1));	
-	}
-	
+  
+  if (r == 1) {
+    return (arma::prod(vec_x, 1) + arma::prod(vec_y, 1)) / P;
+  } else {
+    return ArmaNum_(P, r, vec_x, vec_y, vec_x_pos, vec_y_pos) / (P * nCr(P - 1, r - 1));	
+  }
+  
 }
 
 
@@ -189,18 +267,16 @@ RcppExport SEXP ArmaInner(
     SEXP P_, SEXP r_,
     SEXP vec_x_, SEXP vec_y_,
     SEXP vec_x_pos_, SEXP vec_y_pos_) {
-
-	return Rcpp::wrap(ArmaInner_(
-	                      as<int>(P_), as<int>(r_),
-	                      as<arma::mat>(vec_x_),
-	                      as<arma::mat>(vec_y_),
-	                      as<arma::mat>(vec_x_pos_),
-	                      as<arma::mat>(vec_y_pos_)
-	                  ));
-
+  
+  return Rcpp::wrap(ArmaInner_(
+      as<int>(P_), as<int>(r_),
+      as<arma::mat>(vec_x_),
+      as<arma::mat>(vec_y_),
+      as<arma::mat>(vec_x_pos_),
+      as<arma::mat>(vec_y_pos_)
+  ));
+  
 }
-
-
 
 
 
