@@ -105,6 +105,21 @@ RcppExport SEXP ArmaCombn(
   
 }
 
+// [[Rcpp::Export]]
+RcppExport SEXP ArmaCombnTEST(
+    SEXP N_, SEXP K_) {
+  
+  arma::mat mat1 = ArmaCombn_(
+    as<int>(N_), as<int>(K_)
+  );
+  arma::mat mat2 = arma::reverse(ArmaCombn_(
+    as<int>(N_), as<int>(N_) - as<int>(K_)
+  ), 1);
+  
+  return Rcpp::List::create(mat1, mat2);
+  
+}
+
 
 //// Output the positioned matrix (Func_Cross)
 arma::mat ArmaCross_(
@@ -179,8 +194,7 @@ RcppExport SEXP ArmaCross(
 // which will be a vector
 arma::vec ArmaNum_(
     int P, int r,
-    arma::mat vec_x, arma::mat vec_y,
-    arma::mat vec_x_pos, arma::mat vec_y_pos) {
+    arma::mat vec_x, arma::mat vec_y) {
   
   // Create output placeholder
   arma::vec this_count(vec_x.n_rows);
@@ -198,6 +212,10 @@ arma::vec ArmaNum_(
     
     // Create combinations of size1 and size2,
     // where size2 will be a reversal
+    arma::mat vec_x_pos = ArmaCombn_(vec_x.n_cols, size1);
+    arma::mat vec_y_pos = arma::reverse(ArmaCombn_(vec_x.n_cols, size2), 1);
+      
+    // printf("%4.3f", vec_x_pos.size());
     
     // First, P-r small and r-1 caps:
     this_count = arma::sum(ArmaCross_(vec_x, vec_y, vec_x_pos, vec_y_pos), 1);
@@ -217,46 +235,28 @@ arma::vec ArmaNum_(
 // [[Rcpp::Export]]
 RcppExport SEXP ArmaNum(
     SEXP P_, SEXP r_,
-    SEXP vec_x_, SEXP vec_y_,
-    SEXP vec_x_pos_, SEXP vec_y_pos_) {
+    SEXP vec_x_, SEXP vec_y_) {
+  
   
   return Rcpp::wrap(ArmaNum_(
       as<int>(P_), as<int>(r_),
       as<arma::mat>(vec_x_),
-      as<arma::mat>(vec_y_),
-      as<arma::mat>(vec_x_pos_),
-      as<arma::mat>(vec_y_pos_)
+      as<arma::mat>(vec_y_)
   ));
   
 }
 
 
-int fact(int n);   
-double nCr(int n, int r) 
-{ 
-  return fact(n) / (fact(r) * fact(n - r)); 
-} 
-
-// Returns factorial of n 
-int fact(int n) 
-{ 
-  int res = 1; 
-  for (int i = 2; i <= n; i++) 
-    res = res * i; 
-  return res; 
-} 
-
 
 // Inner frac (Func_Inner)
 arma::vec ArmaInner_(
     int P, int r,
-    arma::mat vec_x, arma::mat vec_y,
-    arma::mat vec_x_pos, arma::mat vec_y_pos) {
+    arma::mat vec_x, arma::mat vec_y) {
   
   if (r == 1) {
     return (arma::prod(vec_x, 1) + arma::prod(vec_y, 1)) / P;
   } else {
-    return ArmaNum_(P, r, vec_x, vec_y, vec_x_pos, vec_y_pos) / (P * nCr(P - 1, r - 1));	
+    return ArmaNum_(P, r, vec_x, vec_y) / (P * nchook(P - 1, r - 1));	
   }
   
 }
@@ -265,15 +265,12 @@ arma::vec ArmaInner_(
 // [[Rcpp::Export]]
 RcppExport SEXP ArmaInner(
     SEXP P_, SEXP r_,
-    SEXP vec_x_, SEXP vec_y_,
-    SEXP vec_x_pos_, SEXP vec_y_pos_) {
+    SEXP vec_x_, SEXP vec_y_) {
   
   return Rcpp::wrap(ArmaInner_(
       as<int>(P_), as<int>(r_),
       as<arma::mat>(vec_x_),
-      as<arma::mat>(vec_y_),
-      as<arma::mat>(vec_x_pos_),
-      as<arma::mat>(vec_y_pos_)
+      as<arma::mat>(vec_y_)
   ));
   
 }

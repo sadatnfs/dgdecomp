@@ -2,11 +2,10 @@
 #'
 #' @export
 #'
-Func_Inner_Matx <- function(P, r, vec_x, vec_y, vec_x_pos, vec_y_pos) {
+Func_Inner_Matx <- function(P, r, vec_x, vec_y, ...) {
   return(
     .Call(
-      "ArmaNum", P, r, vec_x,
-      vec_y, vec_x_pos, vec_y_pos
+      "ArmaNum", P, r, vec_x, vec_y
     ) / Func_Dem(P, r)
   )
 }

@@ -2,7 +2,7 @@
 ### Simple tests on a P factor example
 
 rm(list = ls())
-detach("package:dgdecomp")
+# try(detach("package:dgdecomp"))
 pacman::p_load(data.table, matrixStats, MASS, foreach, doParallel, dgdecomp)
 number_of_factors <- 8
 
@@ -17,8 +17,7 @@ decomp_out <- Decomp_Factors_Matx(
   ffdecomp_simdata$vec_X_today,
   tolerance = 1e-4
 )
-all.equal(sum(decomp_out), ffdecomp_simdata$y_today - ffdecomp_simdata$y_lag)
-
+(all.equal(sum(decomp_out), ffdecomp_simdata$y_today - ffdecomp_simdata$y_lag))
 
 
 ##### Testing on data.table input ----
@@ -43,4 +42,4 @@ decomp_delta <- decomp_out_DT[, .(Id,
 .SDcols = paste0("decomp_X_", 1:number_of_factors)
 ]
 
-all.equal(true_delta$Ydelta, decomp_delta$decomp_delta)
+(all.equal(true_delta$Ydelta, decomp_delta$decomp_delta))
