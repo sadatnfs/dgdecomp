@@ -14,7 +14,7 @@
 #' factor for-loop or not (passes to Decomp_Factor_Matx()). Default: TRUE
 #'
 #' @param parallel Number of threads. Default : 1
-#' 
+#'
 #' @param ... extra parameters to be passed through \code{Decomp_Factors()}
 #' to \code{all.equal()}
 #'
