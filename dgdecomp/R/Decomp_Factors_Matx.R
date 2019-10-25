@@ -16,6 +16,11 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
   # Gather the number of factors
   num_factors <- ncol(mat_x)
 
+  
+  # Redefine parallel if we're overallocating threads 
+  # that is, if threads > num_factors
+  parallel <- min(num_factors, parallel)
+  
   # Compute each marginal effect
   if (use_cpp) {
     effects_all <- .Call("ArmaDFInnerLoop", num_factors, mat_x, mat_y, parallel)
