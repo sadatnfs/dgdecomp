@@ -5,7 +5,7 @@
 \title{Apply DG Decomposition to data.table columns}
 \usage{
 Decomp_on_DT(input_data, factor_names, time_col, bycol, use_cpp = TRUE,
-  ...)
+  parallel = 1, ...)
 }
 \arguments{
 \item{input_data}{A data.table with the factors, which must already
@@ -20,6 +20,8 @@ reduced to just 2 rows per group after slicing}
 
 \item{use_cpp}{A boolean on whether to use the C++ compiled code for the
 factor for-loop or not (passes to Decomp_Factor_Matx()). Default: TRUE}
+
+\item{parallel}{Number of threads. Default : 1}
 
 \item{...}{extra parameters to be passed through \code{Decomp_Factors()}
 to \code{all.equal()}}

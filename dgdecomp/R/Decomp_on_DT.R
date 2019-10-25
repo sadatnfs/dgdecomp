@@ -13,6 +13,8 @@
 #' @param use_cpp A boolean on whether to use the C++ compiled code for the
 #' factor for-loop or not (passes to Decomp_Factor_Matx()). Default: TRUE
 #'
+#' @param parallel Number of threads. Default : 1
+#' 
 #' @param ... extra parameters to be passed through \code{Decomp_Factors()}
 #' to \code{all.equal()}
 #'
@@ -28,6 +30,7 @@ Decomp_on_DT <- compiler::cmpfun(function(input_data,
                                           time_col,
                                           bycol,
                                           use_cpp = TRUE,
+                                          parallel = 1,
                                           ...) {
 
   ## Create the lag and current matrices from the DT
@@ -49,6 +52,7 @@ Decomp_on_DT <- compiler::cmpfun(function(input_data,
     mat_x = as.matrix(lag_mat[, .SD, .SDcols = factor_names]),
     mat_y = as.matrix(curr_mat[, .SD, .SDcols = factor_names]),
     use_cpp = use_cpp,
+    parallel = parallel,
     ...
   )
 

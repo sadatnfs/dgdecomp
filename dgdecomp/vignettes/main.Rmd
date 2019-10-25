@@ -1,0 +1,115 @@
+---
+title: "Examples of Decomposing P Factors"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Examples of Decomposing P Factors}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(data.table, matrixStats, MASS, foreach, doParallel, dgdecomp)
+
+```
+
+## Using on a Single Row
+
+We simulate an 8 factor dataset
+
+```{r sim1}
+number_of_factors <- 8
+ffdecomp_simdata <- simulate_decomp_data(number_of_factors)
+decomp_out <- Decomp_Factors_Matx(
+  ffdecomp_simdata$vec_X_lag,
+  ffdecomp_simdata$vec_X_today,
+  tolerance = 1e-4
+)
+print(all.equal(sum(decomp_out), ffdecomp_simdata$y_today - ffdecomp_simdata$y_lag))
+
+```
+
+## Testing on multiple rows (grouped)
+
+```{r sim2}
+### Simulate 2 time periods; P factors; 3 groups
+sim_dt <- simulate_decomp_data_fullmat(2, number_of_factors, 3)
+
+decomp_out_DT <- Decomp_on_DT(
+  input_data = sim_dt,
+  factor_names = paste0("X_", c(1:number_of_factors)),
+  bycol = "Id",
+  time_col = "t"
+)
+
+true_delta <- sim_dt[,
+  .(Ydelta = Y - shift(Y)),
+  by = "Id"
+][!is.na(Ydelta), .(Id, Ydelta)]
+decomp_delta <- decomp_out_DT[, .(Id,
+  decomp_delta = rowSums(.SD)
+),
+.SDcols = paste0("decomp_X_", 1:number_of_factors)
+]
+
+print(all.equal(true_delta$Ydelta, decomp_delta$decomp_delta))
+```
+
+
+## Testing with parallel threading
+```{r sim3OMP}
+run_decomp_sim <- function(Time = 2, P, G, threads) {
+  sim_dt <- simulate_decomp_data_fullmat(Time, P, G)
+  
+  ## Use the data.table method for doing decomp
+  #### NOTE that there's an overhead of computing the lag columns
+  decomp_out_DT <- Decomp_on_DT(
+    input_data = sim_dt,
+    factor_names = paste0("X_", c(1:P)),
+    bycol = c("Id"),
+    time_col = "t",
+    use_cpp = TRUE, 
+    parallel = threads
+  )
+
+
+  true_delta <- sim_dt[,
+    .(Ydelta = Y - shift(Y)),
+    by = "Id"
+  ][!is.na(Ydelta), .(Id, Ydelta)]
+  decomp_delta <- decomp_out_DT[, .(decomp_delta = rowSums(.SD)),
+    .SDcols = paste0("decomp_X_", 1:P)
+  ]
+
+  return(decomp_delta)
+}
+
+
+run_sim <- function(factoC = c(5, 10, 15), 
+                    groupo = c(2500, 5000, 10000, 20000),
+                    threads = 1) {
+  for (grou in groupo) {
+    for (facto in factoC) {
+      tmp <- system.time(
+        run_decomp_sim(P = facto, G = grou, threads = threads))[3]
+      print(paste0(
+        "factors = ", facto,
+        " groups = ", grou,
+        " time_elapsed = ", format(tmp, digits = 4)
+      ))
+    }
+  }
+}
+```
+
+Run with different factors and large N (using single thread):
+```{r runsim1}
+run_sim(threads = 1, factoC = c(5, 10))
+```
+
+Run the same routine but with 10 threads (which will overallocate for less that 10 factors):
+```{r runsim2}
+run_sim(threads = 10)
+```
+
+

@@ -72,7 +72,8 @@ run_decomp_sim <- function(Time = 2, P, G, use_cpp) {
     factor_names = paste0("X_", c(1:P)),
     bycol = c("Id"),
     time_col = "t",
-    use_cpp = use_cpp
+    use_cpp = use_cpp, 
+    parallel = 5
   )
 
 
@@ -88,8 +89,8 @@ run_decomp_sim <- function(Time = 2, P, G, use_cpp) {
 }
 
 
-run_sim <- function(cppuse, factoC = 5:10) {
-  for (grou in c(5000)) {
+run_sim <- function(cppuse, factoC = 5:10, groupo = c(5000, 10000, 15000)) {
+  for (grou in groupo) {
     for (facto in factoC) {
       tmp <- system.time(
         run_decomp_sim(P = facto, G = grou, use_cpp = cppuse))[3]
@@ -102,7 +103,7 @@ run_sim <- function(cppuse, factoC = 5:10) {
   }
 }
 
-run_sim(TRUE, 15)
+run_sim(TRUE, c(5:15))
 # run_sim(FALSE, 13)
 
 # mbm <- microbenchmark(

@@ -1,32 +1,16 @@
 #include <iostream>
-// #include "mkl.h"
 #include <omp.h>
 
-// #include <iterator>
 #include <vector>
 #include <thread>
 #include <algorithm>
 #include <cstdlib>
-// #include <discreture.hpp>
-// #include <Rcpp.h>
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace std;
 using namespace arma;
 
-
-/// Compile with
-//  PKG_CXXFLAGS="-I/home/nasadat/R/x86_64-pc-linux-gnu-library/3.6/RcppArmadillo/include -I/home/nasadat/R/x86_64-pc-linux-gnu-library/3.6/Rcpp/include" PKG_LIBS=`Rscript -e 'Rcpp:::LdFlags()'` R CMD SHLIB ~/Documents/repos/dgdecomp_repo/dgdecomp/src/armacross.cpp
-
-
-
-////////// We can write a C++ function as is
-////////// But then we must pass it through SEXP
-////////// if we are to call it from R
-
-///// Here, I wrote a mostly-pure C++ function
-///// and then an export function with SEXP inputs and outputs
 
 
 
@@ -144,9 +128,6 @@ arma::mat ArmaCross_(
   arma::mat vec_x_pos, arma::mat vec_y_pos) {
 
 
-  // mkl_set_num_threads(10);
-  // omp_set_num_threads(10);
-
   // Create output matrix
   arma::mat prod_inner(vec_x.n_rows, vec_x_pos.n_cols);
 
@@ -155,16 +136,21 @@ arma::mat ArmaCross_(
 
   for ( int row1 = 0; row1 < prod_inner.n_rows; row1++) {
 
-    for ( int col1 = 0; col1 < vec_x_pos.n_cols; col1++) { // invariant between vec_x_pos and vec_y_pos
+    for ( int col1 = 0; col1 < vec_x_pos.n_cols; col1++) { 
+      // invariant between vec_x_pos and vec_y_pos
 
       // Go over each row of vec_x_pos
-      for ( int row2 = 0; row2 < vec_x_pos.n_rows; row2++) { // vec_x_pos specific
-        tmpprod = tmpprod * vec_x(row1, vec_x_pos(row2, col1) - 1); // -1 correction for zero index
+      for ( int row2 = 0; row2 < vec_x_pos.n_rows; row2++) { 
+        // vec_x_pos specific
+        tmpprod = tmpprod * vec_x(row1, vec_x_pos(row2, col1) - 1); 
+        // -1 correction for zero index
       }
 
       // Go over each row of vec_y_pos
-      for ( int row3 = 0; row3 < vec_y_pos.n_rows; row3++) { // vec_x_pos specific
-        tmpprod = tmpprod * vec_y(row1, vec_y_pos(row3, col1) - 1); // -1 correction for zero index
+      for ( int row3 = 0; row3 < vec_y_pos.n_rows; row3++) { 
+        // vec_x_pos specific
+        tmpprod = tmpprod * vec_y(row1, vec_y_pos(row3, col1) - 1); 
+        // -1 correction for zero index
       }
 
       // Record in prod_inner
@@ -200,13 +186,6 @@ RcppExport SEXP ArmaCross(
 }
 
 
-
-// // [[Rcpp::export]]
-// NumericMatrix callFunction(int x, int size1, int size2, Function f) {
-//     NumericMatrix res = (x);
-//     return res;
-// }
-
 // Create numerator (Func_Num)
 // which will be a vector
 arma::vec ArmaNum_(
@@ -240,7 +219,8 @@ arma::vec ArmaNum_(
     // Next, P-r caps and r-1 small:
     // ONLY applicable if we are not comparing identical sizes
     if (size1 != size2) {
-      this_count = this_count + arma::sum(ArmaCross_(vec_x, vec_y, vec_y_pos, vec_x_pos), 1);
+      this_count = this_count + arma::sum(
+        ArmaCross_(vec_x, vec_y, vec_y_pos, vec_x_pos), 1);
     }
 
     return this_count;
@@ -338,11 +318,6 @@ arma::mat ArmaDFInnerLoop_(
 
   // Allocate output matrix
   arma::mat outmat(mat_x.n_rows, num_facts);
-
-  // We'll need to make copies of the inputs
-  arma::mat mat_x_copy = mat_x;
-  arma::mat mat_y_copy = mat_y;
-
 
   // We will loop over the factors 1 through num_facts
   #pragma omp parallel num_threads(threads)
