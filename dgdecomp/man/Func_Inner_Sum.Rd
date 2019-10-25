@@ -15,6 +15,8 @@ Func_Inner_Sum_Matx(P, vec_x, vec_y)
 \item{vec_x}{First input vector}
 
 \item{vec_y}{Second input vector}
+
+\item{threads}{Number of OpenMP threads to use. Default: 1}
 }
 \value{
 A numeric value with the full inner sum for the given effect

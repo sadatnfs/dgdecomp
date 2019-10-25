@@ -2,11 +2,11 @@
 #'
 #' @export
 #'
-Func_Inner_Sum_Matx <- function(P, vec_x, vec_y, threads = 1) {
+Func_Inner_Sum_Matx <- function(P, vec_x, vec_y) {
   return(
     .Call(
       "ArmaInnerSum",
-      P, vec_x, vec_y, threads
+      P, vec_x, vec_y
     )
   )
 }

@@ -9,9 +9,11 @@ number_of_factors <- 7
 
 
 
-dyn.load("/opt/compiled_code_for_R/setthreads.so")
-.C("setOMPthreads", 10)
-.C("setMKLthreads", 10)
+if (Sys.info()[["sysname"]] == "Linux") {
+    dyn.load("/opt/compiled_code_for_R/setthreads.so")
+    .C("setOMPthreads", 10)
+    .C("setMKLthreads", 10)
+}
 
 ### Simulate 10 time periods; P factors; 3 groups
 sim_dt <- simulate_decomp_data_fullmat(2, number_of_factors, 3)

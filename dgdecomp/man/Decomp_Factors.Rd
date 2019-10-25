@@ -8,7 +8,7 @@
 Decomp_Factors(vec_x, vec_y, return_dt = TRUE, ...)
 
 Decomp_Factors_Matx(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
-  ...)
+  parallel = 1, ...)
 }
 \arguments{
 \item{vec_x}{First input vector (represents t-1)}
@@ -26,6 +26,8 @@ the tolerance.}
 
 \item{use_cpp}{A boolean on whether to use the C++ compiled code or not.
 Default: TRUE}
+
+\item{parallel}{Number of threads. Default : 1}
 }
 \value{
 A data.table or vector of decomposed effects for each factors,

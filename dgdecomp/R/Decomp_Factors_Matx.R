@@ -18,7 +18,7 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
 
   # Compute each marginal effect
   if (use_cpp) {
-    effects_all <- .Call("ArmaDFInnerLoop", num_factors, mat_x, mat_y)
+    effects_all <- .Call("ArmaDFInnerLoop", num_factors, mat_x, mat_y, parallel)
   } else {
     effects_all <- sapply(
       c(1:num_factors),
@@ -35,8 +35,7 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
         Func_Inner_Sum_Matx(
           P = num_factors,
           vec_x = input_x,
-          vec_y = input_y,
-          threads = parallel
+          vec_y = input_y
         ) * as.matrix(mat_y[, x] - mat_x[, x])
       }
     )
