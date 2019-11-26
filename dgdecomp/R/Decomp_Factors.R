@@ -18,6 +18,9 @@
 #' Default: TRUE
 #'
 #' @param parallel Number of threads. Default : 1
+#' 
+#' @param equality_check Check whether the decomp values align with inputs.
+#' Default: TRUE. Highly recommended to set to TRUE.
 #'
 #' @param ... extra parameters to be passed to \code{all.equal()}, for e.g.
 #' the tolerance.
@@ -31,6 +34,7 @@
 #'
 Decomp_Factors <- compiler::cmpfun(function(vec_x, vec_y,
                                             return_dt = TRUE,
+                                            equality_check = TRUE,
                                             ...) {
 
   # Simple assertions
@@ -55,11 +59,13 @@ Decomp_Factors <- compiler::cmpfun(function(vec_x, vec_y,
   }
 
   # Assertion on whether the decomp actually worked
-  stopifnot(base::all.equal(
-    prod(vec_y) - prod(vec_x),
-    sum(effects_all),
-    ...
-  ))
+  if (equality_check) {
+    stopifnot(base::all.equal(
+      apply(mat_y, 1, prod) - apply(mat_x, 1, prod),
+      apply(effects_all, 1, sum),
+      ...
+    ))
+  }
 
   # Return the effects
   return(effects_all)

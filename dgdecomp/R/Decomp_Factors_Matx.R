@@ -3,7 +3,7 @@
 #' @export
 #'
 Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
-                                parallel = 1,
+                                parallel = 1, equality_check = TRUE,
                                 ...) {
 
   # Coerce vectors into matrices
@@ -62,11 +62,13 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
   }
 
   # Assertion on whether the decomp actually worked
-  stopifnot(base::all.equal(
-    apply(mat_y, 1, prod) - apply(mat_x, 1, prod),
-    apply(effects_all, 1, sum),
-    ...
-  ))
+  if (equality_check) {
+    stopifnot(base::all.equal(
+      apply(mat_y, 1, prod) - apply(mat_x, 1, prod),
+      apply(effects_all, 1, sum),
+      ...
+    ))
+  }
 
   # Return the effects
   return(effects_all)

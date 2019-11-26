@@ -43,3 +43,36 @@ decomp_delta <- decomp_out_DT[, .(Id,
 ]
 
 (all.equal(true_delta$Ydelta, decomp_delta$decomp_delta))
+
+
+##### Testing on multiple time points input ----
+
+### Simulate 3 time periods; P factors; 3 groups
+sim_dt_multiv <- simulate_decomp_data_fullmat(3, number_of_factors, 3)
+
+decomp_t1_t2 <- Decomp_on_DT(
+  input_data = sim_dt_multiv[t %in% c(1,2)],
+  factor_names = paste0("X_", c(1:number_of_factors)),
+  bycol = "Id",
+  time_col = "t"
+)
+
+decomp_t2_t3 <- Decomp_on_DT(
+  input_data = sim_dt_multiv[t %in% c(2,3)],
+  factor_names = paste0("X_", c(1:number_of_factors)),
+  bycol = "Id",
+  time_col = "t"
+)
+
+decomp_t1_t3 <- Decomp_on_DT(
+  input_data = sim_dt_multiv[t %in% c(1,3)],
+  factor_names = paste0("X_", c(1:number_of_factors)),
+  bycol = "Id",
+  time_col = "t"
+)
+
+
+
+
+
+

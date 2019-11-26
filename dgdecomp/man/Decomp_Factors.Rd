@@ -5,10 +5,11 @@
 \alias{Decomp_Factors_Matx}
 \title{Compute the marginal decomposition effects from given input}
 \usage{
-Decomp_Factors(vec_x, vec_y, return_dt = TRUE, ...)
+Decomp_Factors(vec_x, vec_y, return_dt = TRUE, equality_check = TRUE,
+  ...)
 
 Decomp_Factors_Matx(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
-  parallel = 1, ...)
+  parallel = 1, equality_check = TRUE, ...)
 }
 \arguments{
 \item{vec_x}{First input vector (represents t-1)}
@@ -16,6 +17,9 @@ Decomp_Factors_Matx(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
 \item{vec_y}{Second input vector (represents t)}
 
 \item{return_dt}{A boolean on whether to return a data.table or a vector}
+
+\item{equality_check}{Check whether the decomp values align with inputs.
+Default: TRUE. Highly recommended to set to TRUE.}
 
 \item{...}{extra parameters to be passed to \code{all.equal()}, for e.g.
 the tolerance.}
