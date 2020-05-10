@@ -7,7 +7,7 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
                                 ...) {
 
   # Coerce vectors into matrices
-  if (class(mat_x) != "matrix") {
+  if (!("matrix" %in% class(mat_x) )) {
     mat_x <- t(as.matrix(mat_x))
     mat_y <- t(as.matrix(mat_y))
   }
@@ -48,7 +48,7 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
 
 
   ## Make sure that the output is a matrix
-  if (class(effects_all) == "numeric") {
+  if ("numeric" %in% class(effects_all)) {
     effects_all <- t(as.matrix(effects_all))
   }
 
