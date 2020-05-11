@@ -6,9 +6,10 @@
 #include <algorithm>
 #include <cstdlib>
 #include <RcppEigen.h>
+#include <RcppBlaze.h>
 
 
-// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::depends(RcppBlaze)]]
 
 using namespace Rcpp;
 using namespace std;
@@ -16,9 +17,12 @@ using namespace Eigen;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
+using namespace blaze;
+using blaze::DynamicMatrix;
+using blaze::DynamicVector;
 
 // Create n-choose-k value
-long int nchook2(const int N, const int K) {
+long int nchook3(const int N, const int K) {
   int nCk = 0;
   // if (K * 2 > N) K = N - K;
   if (K == 0) {
@@ -56,14 +60,14 @@ long int nchook2(const int N, const int K) {
 
 
 // Create cominations
-MatrixXd EigCombn_(int N, int K) {
+MatrixXd BlazeCombn_(int N, int K) {
   
   std::string bitmask(K, 1); // K leading 1s
   bitmask.resize(N, 0); // N-K trailing 0s
   
   
   // Create n-choose-k value
-  long int nCk = nchook2(N, K);
+  long int nCk = nchook3(N, K);
   
   // Create output matrix
   int matrow = nCk;
@@ -106,10 +110,10 @@ MatrixXd EigCombn_(int N, int K) {
 
 
 // [[Rcpp::Export]]
-RcppExport SEXP EigCombn(
+RcppExport SEXP BlazeCombn(
     SEXP N_, SEXP K_) {
   
-  return Rcpp::wrap(EigCombn_(
+  return Rcpp::wrap(BlazeCombn_(
       as<int>(N_), as<int>(K_)
   ));
   
@@ -118,7 +122,7 @@ RcppExport SEXP EigCombn(
 
 
 //// Output the positioned matrix (Func_Cross)
-MatrixXd EigCross_(
+MatrixXd BlazeCross_(
     MatrixXd vec_x, MatrixXd vec_y,
     MatrixXd vec_x_pos, MatrixXd vec_y_pos) {
   
@@ -163,7 +167,7 @@ MatrixXd EigCross_(
 
 //// The returner
 // [[Rcpp::Export]]
-RcppExport SEXP EigCross(
+RcppExport SEXP BlazeCross(
     SEXP vec_x_, SEXP vec_y_,
     SEXP vec_x_pos_, SEXP vec_y_pos_) {
   
@@ -171,7 +175,7 @@ RcppExport SEXP EigCross(
   // so that we convert from input type from R (SEXP) to whatever our funk needs
   
   return Rcpp::wrap(
-    EigCross_(
+    BlazeCross_(
       as<MatrixXd>(vec_x_),
       as<MatrixXd>(vec_y_),
       as<MatrixXd>(vec_x_pos_),
@@ -183,7 +187,7 @@ RcppExport SEXP EigCross(
 
 // Create numerator (Func_Num)
 // which will be a vector
-VectorXd EigNum_(
+VectorXd BlazeNum_(
     const int P, const int r,
     MatrixXd mat_x, MatrixXd mat_y) {
   
@@ -203,18 +207,18 @@ VectorXd EigNum_(
     
     // Create combinations of size1 and size2,
     // where size2 will be a reversal
-    MatrixXd mat_x_pos = EigCombn_(mat_x.cols(), size1);
-    MatrixXd mat_y_pos = EigCombn_(mat_x.cols(), size2).rowwise().reverse();
+    MatrixXd mat_x_pos = BlazeCombn_(mat_x.cols(), size1);
+    MatrixXd mat_y_pos = BlazeCombn_(mat_x.cols(), size2).rowwise().reverse();
     
     // printf("%4.3f", mat_x_pos.size());
     
     // First, P-r small and r-1 caps:
-    this_count = EigCross_(mat_x, mat_y, mat_x_pos, mat_y_pos).rowwise().sum();
+    this_count = BlazeCross_(mat_x, mat_y, mat_x_pos, mat_y_pos).rowwise().sum();
     
     // Next, P-r caps and r-1 small:
     // ONLY applicable if we are not comparing identical sizes
     if (size1 != size2) {
-      this_count = this_count + EigCross_(
+      this_count = this_count + BlazeCross_(
         mat_x, mat_y, mat_y_pos, mat_x_pos).rowwise().sum();
     }
     
@@ -227,14 +231,14 @@ VectorXd EigNum_(
 
 
 // Inner frac (Func_Inner)
-VectorXd EigInner_(
+VectorXd BlazeInner_(
     const int P, const int r,
     MatrixXd vec_x, MatrixXd vec_y) {
   
   if (r == 1) {
     return (vec_x.rowwise().prod() + vec_y.rowwise().prod()) / P;
   } else {
-    return EigNum_(P, r, vec_x, vec_y) / (P * nchook2(P - 1, r - 1));
+    return BlazeNum_(P, r, vec_x, vec_y) / (P * nchook3(P - 1, r - 1));
   }
   
 }
@@ -243,7 +247,7 @@ VectorXd EigInner_(
 
 // Inner sum (Func_Inner_Sum) [returns vector of size vec_x_.rows()]
 // this will loop over 1:P_upper and call ArmaInner, and add the values
-VectorXd EigInnerSum_ (
+VectorXd BlazeInnerSum_ (
     const int P,
     const MatrixXd vec_x, const MatrixXd vec_y) {
   
@@ -255,7 +259,7 @@ VectorXd EigInnerSum_ (
   
   // Loop
   for (int Rx = 1; Rx <= P_upper; Rx++) {
-    sum_count = sum_count + EigInner_(
+    sum_count = sum_count + BlazeInner_(
       P, Rx, vec_x, vec_y
     );
   }
@@ -265,11 +269,11 @@ VectorXd EigInnerSum_ (
 }
 
 // [[Rcpp::Export]]
-RcppExport SEXP EigInnerSum(
+RcppExport SEXP BlazeInnerSum(
     const SEXP P_,
     const SEXP vec_x_, const SEXP vec_y_) {
   
-  return Rcpp::wrap(EigInnerSum_(
+  return Rcpp::wrap(BlazeInnerSum_(
       as<int>(P_),
       as<MatrixXd>(vec_x_),
       as<MatrixXd>(vec_y_)
@@ -278,18 +282,18 @@ RcppExport SEXP EigInnerSum(
 }
 
 
-void removeRow(Eigen::MatrixXd& matrix, unsigned int rowToRemove)
-{
-  unsigned int numRows = matrix.rows()-1;
-  unsigned int numCols = matrix.cols();
-  
-  if( rowToRemove < numRows )
-    matrix.block(rowToRemove,0,numRows-rowToRemove,numCols) = matrix.bottomRows(numRows-rowToRemove);
-  
-  matrix.conservativeResize(numRows,numCols);
-}
+// void removeRow2(Eigen::MatrixXd& matrix, unsigned int rowToRemove)
+// {
+//   unsigned int numRows = matrix.rows()-1;
+//   unsigned int numCols = matrix.cols();
+//   
+//   if( rowToRemove < numRows )
+//     matrix.block(rowToRemove,0,numRows-rowToRemove,numCols) = matrix.bottomRows(numRows-rowToRemove);
+//   
+//   matrix.conservativeResize(numRows,numCols);
+// }
 
-void removeColumn(Eigen::MatrixXd& matrix, unsigned int colToRemove)
+void removeColumn2(Eigen::MatrixXd& matrix, unsigned int colToRemove)
 {
   unsigned int numRows = matrix.rows();
   unsigned int numCols = matrix.cols()-1;
@@ -302,7 +306,7 @@ void removeColumn(Eigen::MatrixXd& matrix, unsigned int colToRemove)
 
 
 // The marginal effect loop inside Decomp_Factors_Matx
-MatrixXd EigDFInnerLoop_(
+MatrixXd BlazeDFInnerLoop_(
     const int num_facts,
     const MatrixXd mat_x, const MatrixXd mat_y,
     const int threads) {
@@ -326,10 +330,10 @@ MatrixXd EigDFInnerLoop_(
     // xshed.shed_col(x - 1);
     // yshed.shed_col(x - 1);
     
-    removeColumn(xshed, x-1);
-    removeColumn(yshed, x-1);
+    removeColumn2(xshed, x-1);
+    removeColumn2(yshed, x-1);
     
-    outmat.col(x - 1) = EigInnerSum_(num_facts, xshed, yshed);
+    outmat.col(x - 1) = BlazeInnerSum_(num_facts, xshed, yshed);
     
     // Multiply with the sliced matrix
     VectorXd tmpcol = mat_y.col(x - 1) - mat_x.col(x - 1);
@@ -344,12 +348,12 @@ return outmat;
 }
 
 // [[Rcpp::Export]]
-RcppExport SEXP EigDFInnerLoop(
+RcppExport SEXP BlazeDFInnerLoop(
     const SEXP num_facts,
     SEXP mat_x_, SEXP mat_y_,
     const SEXP threads_ ) {
   
-  return Rcpp::wrap(EigDFInnerLoop_(
+  return Rcpp::wrap(BlazeDFInnerLoop_(
       as<int>(num_facts),
       as<MatrixXd>(mat_x_),
       as<MatrixXd>(mat_y_),

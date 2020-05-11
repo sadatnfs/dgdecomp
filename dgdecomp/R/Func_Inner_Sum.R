@@ -7,12 +7,14 @@
 #' @param vec_y Second input vector
 #'
 #' @param threads Number of OpenMP threads to use. Default: 1
+#' 
+#' @param cpplib Either 'arma' or 'eigen'
 #'
 #' @return A numeric value with the full inner sum for the given effect
 #'
 #' @export
 #'
-Func_Inner_Sum <- compiler::cmpfun(function(P, vec_x, vec_y) {
+Func_Inner_Sum <- compiler::cmpfun(function(P, vec_x, vec_y ) {
   sum_count <- 0
   P_upper <- ifelse(P %% 2 == 0, P / 2, (P + 1) * 0.5)
   for (r in 1:P_upper) {

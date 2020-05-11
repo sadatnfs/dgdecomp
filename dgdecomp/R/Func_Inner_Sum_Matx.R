@@ -2,12 +2,22 @@
 #'
 #' @export
 #'
-Func_Inner_Sum_Matx <- function(P, vec_x, vec_y) {
+Func_Inner_Sum_Matx <- function(P, vec_x, vec_y, cpplib) {
   return(
-    .Call(
-      "ArmaInnerSum",
-      P, vec_x, vec_y
-    )
+    if (cpplib == 'arma') {
+      .Call(
+        "ArmaInnerSum",
+        P, vec_x, vec_y
+      )
+    } else if (cpplib == 'eigen') {
+      .Call(
+        "EigInnerSum",
+        P, vec_x, vec_y
+      )
+    } else {
+      stop("Just stop")
+    }
+    
   )
 }
 #### If looping in R ####

@@ -23,6 +23,12 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
   parallel <- min(num_factors, parallel)
 
   # Compute each marginal effect
+  
+  ## EIGEN still not functional
+  if (cpplib == "eigen") {
+    warning("Eigen support not fixed yet")
+  }
+  
   if (use_cpp) {
     if (cpplib == "arma") {
       effects_all <- .Call("ArmaDFInnerLoop", num_factors, mat_x, mat_y, parallel)
@@ -47,7 +53,8 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
         Func_Inner_Sum_Matx(
           P = num_factors,
           vec_x = input_x,
-          vec_y = input_y
+          vec_y = input_y,
+          cpplib = cpplib
         ) * as.matrix(mat_y[, x] - mat_x[, x])
       }
     )

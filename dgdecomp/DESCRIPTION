@@ -15,12 +15,11 @@ Maintainer: Nafis Sadat <sadatnfs@gmail.com>
 LinkingTo: 
     Rcpp,
     RcppArmadillo,
-    RcppEigen
+    RcppEigen,
+    RcppBlaze
 Depends:
     data.table,
-    Rcpp,
-    RcppArmadillo,
-    RcppEigen
+    Rcpp
 Suggests:
     assertthat,
     testthat,
