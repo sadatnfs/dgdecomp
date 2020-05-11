@@ -11,13 +11,22 @@ number_of_factors <- 8
 ## Simulate a listed 1-D dataset
 ffdecomp_simdata <- simulate_decomp_data(number_of_factors)
 
-## Compute decomp with our glorious functions
-decomp_out <- Decomp_Factors_Matx(
+## Compute decomp with our armadillo functions
+decomp_out_arma <- Decomp_Factors_Matx(
   ffdecomp_simdata$vec_X_lag,
   ffdecomp_simdata$vec_X_today,
-  tolerance = 1e-4
+  tolerance = 1e-4,
+  cpplib = "arma"
 )
 (all.equal(sum(decomp_out), ffdecomp_simdata$y_today - ffdecomp_simdata$y_lag))
+
+decomp_out_eigen <- Decomp_Factors_Matx(
+  ffdecomp_simdata$vec_X_lag,
+  ffdecomp_simdata$vec_X_today,
+  tolerance = 1e-4,
+  cpplib = "eigen"
+)
+(all.equal(sum(decomp_out_eigen), ffdecomp_simdata$y_today - ffdecomp_simdata$y_lag))
 
 
 ##### Testing on data.table input ----
@@ -29,7 +38,8 @@ decomp_out_DT <- Decomp_on_DT(
   input_data = sim_dt,
   factor_names = paste0("X_", c(1:number_of_factors)),
   bycol = "Id",
-  time_col = "t"
+  time_col = "t",
+  cpplib = "eigen"
 )
 
 true_delta <- sim_dt[,

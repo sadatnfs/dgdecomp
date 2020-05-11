@@ -14,8 +14,11 @@
 #' factor for-loop or not (passes to Decomp_Factor_Matx()). Default: TRUE
 #'
 #' @param parallel Number of threads. Default : 1
+#' 
+#' @param cpplib C++ library to use, one of \code{c('arma', 'eigen')}.
+#' Default: 'arma'
 #'
-#' @param ... extra parameters to be passed through \code{Decomp_Factors()}
+#' @param ... extra parameters to be passed through \code{Decomp_Factors_Matx()}
 #' to \code{all.equal()}
 #'
 #' @return A data.table of the same size as input, but instead with
@@ -31,6 +34,7 @@ Decomp_on_DT <- compiler::cmpfun(function(input_data,
                                           bycol,
                                           use_cpp = TRUE,
                                           parallel = 1,
+                                          cpplib = 'arma',
                                           ...) {
 
   ## Create the lag and current matrices from the DT
@@ -53,6 +57,7 @@ Decomp_on_DT <- compiler::cmpfun(function(input_data,
     mat_y = as.matrix(curr_mat[, .SD, .SDcols = factor_names]),
     use_cpp = use_cpp,
     parallel = parallel,
+    cpplib = cpplib,
     ...
   )
 

@@ -3,7 +3,8 @@
 #' @export
 #'
 Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
-                                parallel = 1, equality_check = TRUE,
+                                parallel = 1, cpplib = 'arma',
+                                equality_check = TRUE,
                                 ...) {
 
   # Coerce vectors into matrices
@@ -23,7 +24,13 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
 
   # Compute each marginal effect
   if (use_cpp) {
-    effects_all <- .Call("ArmaDFInnerLoop", num_factors, mat_x, mat_y, parallel)
+    if (cpplib == "arma") {
+      effects_all <- .Call("ArmaDFInnerLoop", num_factors, mat_x, mat_y, parallel)
+    } else if (cpplib == "eigen") {
+      effects_all <- .Call("EigDFInnerLoop", num_factors, mat_x, mat_y, parallel)
+    } else {
+      stop("Need to specify either arma or eigen for cpplig")
+    }
   } else {
     effects_all <- sapply(
       c(1:num_factors),
