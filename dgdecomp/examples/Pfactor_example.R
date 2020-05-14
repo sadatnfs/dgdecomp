@@ -28,6 +28,18 @@ decomp_out_eigen <- Decomp_Factors_Matx(
 )
 (all.equal(sum(decomp_out_eigen), ffdecomp_simdata$y_today - ffdecomp_simdata$y_lag))
 
+decomp_out_blaze <- Decomp_Factors_Matx(
+  ffdecomp_simdata$vec_X_lag,
+  ffdecomp_simdata$vec_X_today,
+  tolerance = 1e-4,
+  use_cpp = F,
+  cpplib = "blaze"
+)
+(all.equal(sum(decomp_out_blaze), ffdecomp_simdata$y_today - ffdecomp_simdata$y_lag))
+
+
+
+
 
 ##### Testing on data.table input ----
 
@@ -40,6 +52,15 @@ decomp_out_DT <- Decomp_on_DT(
   bycol = "Id",
   time_col = "t"
 )
+decomp_out_DT_true_blaze <- Decomp_on_DT(
+  input_data = sim_dt,
+  factor_names = paste0("X_", c(1:number_of_factors)),
+  bycol = "Id",
+  time_col = "t",
+  parallel = 1,
+  cpplib = "blaze"
+)
+
 decomp_out_DT_false_arma <- Decomp_on_DT(
   input_data = sim_dt,
   factor_names = paste0("X_", c(1:number_of_factors)),

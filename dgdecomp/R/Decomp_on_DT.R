@@ -15,7 +15,7 @@
 #'
 #' @param parallel Number of threads. Default : 1
 #' 
-#' @param cpplib C++ library to use, one of \code{c('arma', 'eigen')}.
+#' @param cpplib C++ library to use, one of \code{c('arma', 'eigen', 'blaze')}.
 #' Default: 'arma'
 #'
 #' @param ... extra parameters to be passed through \code{Decomp_Factors_Matx()}

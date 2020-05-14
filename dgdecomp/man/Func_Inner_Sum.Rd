@@ -7,7 +7,7 @@
 \usage{
 Func_Inner_Sum(P, vec_x, vec_y)
 
-Func_Inner_Sum_Matx(P, vec_x, vec_y)
+Func_Inner_Sum_Matx(P, vec_x, vec_y, cpplib)
 }
 \arguments{
 \item{P}{Number of factors}
@@ -15,6 +15,8 @@ Func_Inner_Sum_Matx(P, vec_x, vec_y)
 \item{vec_x}{First input vector}
 
 \item{vec_y}{Second input vector}
+
+\item{cpplib}{Either 'arma' or 'eigen'}
 
 \item{threads}{Number of OpenMP threads to use. Default: 1}
 }
