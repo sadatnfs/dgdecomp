@@ -6,4 +6,4 @@
 *.tar.gz
 *.so
 *.o
-
+.DS_Store

@@ -6,20 +6,24 @@
 #include <algorithm>
 #include <cstdlib>
 #include <RcppEigen.h>
-#include <RcppBlaze.h>
+#include <RcppBlaze3.h>
 
 
 // [[Rcpp::depends(RcppBlaze)]]
 
 using namespace Rcpp;
 using namespace std;
-using namespace Eigen;
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-
 using namespace blaze;
+using Rcpp::as;
 using blaze::DynamicMatrix;
 using blaze::DynamicVector;
+using blaze::columnVector;
+using blaze::rowwise;
+using blaze::prod;
+
+
+//// Compile code
+// g++  -std=gnu++17 -I"/opt/R/lib/R/include" -DNDEBUG  -I'/data/opt/R/lib/R/library/Rcpp/include' -I'/data/opt/R/lib/R/library/RcppArmadillo/include' -I'/data/opt/R/lib/R/library/RcppEigen/include' -I'/data/opt/R/lib/R/library/RcppBlaze/include' -w -fopenmp -fno-gnu-unique -fno-optimize-sibling-calls -DMKL_ILP64 -m64 -I/opt/intel/compilers_and_libraries/linux/mkl/include -I/usr/include -I/opt/conda/include                             -msse2 -msse3 -msse4.1 -msse4.2 -mfma -mavx -mavx2 -ffp-contract=fast  -mfpmath=sse -g -O3   -fopenmp -lgomp  -fPIC   -w -fopenmp -fno-gnu-unique -fno-optimize-sibling-calls -DMKL_ILP64 -m64 -I/opt/intel/compilers_and_libraries/linux/mkl/include -I/usr/include -I/opt/conda/include                             -msse2 -msse3 -msse4.1 -msse4.2 -mfma -mavx -mavx2 -ffp-contract=fast  -mfpmath=sse -g -O3   -c /home/nasadat/blazetest.cpp -o /home/nasadat/blazetest.o; g++ -std=gnu++17 -shared -L/opt/R/lib/R/lib -L/usr/local/lib -liconv -L/opt/conda/lib -licui18n -licuuc -licudata -L/opt/hadoop/lib/native:/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64_lin:/opt/intel/lib/intel64_lin:/usr/lib:/usr/local/lib:/opt/intel/compilers_and_libraries_2020.1.217/linux/tbb/lib/intel64_lin/gcc4.7:/opt/intel/compilers_and_libraries_2020.1.217/linux/compiler/lib/intel64_lin:/opt/intel/compilers_and_libraries_2020.1.217/linux/mkl/lib/intel64_lin:/opt/hadoop/lib/native:/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64_lin:/opt/intel/lib/intel64_lin:/usr/lib:/usr/local/lib:/opt/intel/compilers_and_libraries_2020.1.217/linux/tbb/lib/intel64_lin/gcc4.7:/opt/intel/compilers_and_libraries_2020.1.217/linux/compiler/lib/intel64_lin:/opt/intel/compilers_and_libraries_2020.1.217/linux/mkl/lib/intel64_lin:/opt/conda/lib:/opt/conda/lib -L/usr/lib -o /home/nasadat/blazetest.so /home/nasadat/blazetest.o -fopenmp -lgomp -L/opt/R/lib/R/lib -lR
 
 // Create n-choose-k value
 long int nchook3(const int N, const int K) {
@@ -34,33 +38,22 @@ long int nchook3(const int N, const int K) {
       nCk /= i;
     }
   }
-
+  
   return nCk;
 }
 
-// long int fact(int n);
-// long int nCr(const int n, const int r)
-// {
-//   return fact(n) / (fact(r) * fact(n - r));
-// }
-// 
-// // Returns factorial of n
-// long int fact(const int n)
-// {
-//   int res = 1;
-//   for (int i = 2; i <= n; i++)
-//     res = res * i;
-//   return res;
-// }
-
-
-
-
-
-
+// [[Rcpp::Export]]
+RcppExport SEXP Blaze__nchook3(
+    SEXP N_, SEXP K_) {
+  
+  return Rcpp::wrap(nchook3(
+      as<int>(N_), as<int>(K_)
+  ));
+  
+}
 
 // Create cominations
-MatrixXd BlazeCombn_(int N, int K) {
+blaze::DynamicMatrix<double> BlazeCombn_(int N, int K) {
   
   std::string bitmask(K, 1); // K leading 1s
   bitmask.resize(N, 0); // N-K trailing 0s
@@ -75,7 +68,7 @@ MatrixXd BlazeCombn_(int N, int K) {
   
   // print integers and permute bitmask
   // and store in a VECTOR first
-  VectorXd ech(matrow * matcol);
+  blaze::DynamicVector<double> ech(matrow * matcol);
   int echh = 0;
   do {
     for (int i = 0; i < N; ++i) // [0..N-1] integers
@@ -91,7 +84,7 @@ MatrixXd BlazeCombn_(int N, int K) {
   
   
   // Output matrix (from vector)
-  MatrixXd outmat(matrow, matcol);
+  blaze::DynamicMatrix<double> outmat(matrow, matcol);
   
   int counter = 0;
   for (int i = 0; i < matrow; i++) {
@@ -103,14 +96,14 @@ MatrixXd BlazeCombn_(int N, int K) {
   
   
   // Finally, transpose this matrix and return!
-  outmat.transposeInPlace();
+  transpose(outmat);
   return outmat;
   
 }
 
 
 // [[Rcpp::Export]]
-RcppExport SEXP BlazeCombn(
+RcppExport SEXP Blaze__Combn(
     SEXP N_, SEXP K_) {
   
   return Rcpp::wrap(BlazeCombn_(
@@ -120,22 +113,21 @@ RcppExport SEXP BlazeCombn(
 }
 
 
-
 //// Output the positioned matrix (Func_Cross)
-MatrixXd BlazeCross_(
-    MatrixXd vec_x, MatrixXd vec_y,
-    MatrixXd vec_x_pos, MatrixXd vec_y_pos) {
+blaze::DynamicMatrix<double> BlazeCross_(
+    blaze::DynamicMatrix<double> vec_x, blaze::DynamicMatrix<double> vec_y,
+    blaze::DynamicMatrix<double> vec_x_pos, blaze::DynamicMatrix<double> vec_y_pos) {
   
   
   // Create output matrix
-  MatrixXd prod_inner(vec_x.rows(), vec_x_pos.cols());
+  blaze::DynamicMatrix<double> prod_inner(vec_x.rows(), vec_x_pos.columns());
   
   // Temp store
   double tmpprod = 1.;
   
   for ( int row1 = 0; row1 < prod_inner.rows(); row1++) {
     
-    for ( int col1 = 0; col1 < vec_x_pos.cols(); col1++) { 
+    for ( int col1 = 0; col1 < vec_x_pos.columns(); col1++) { 
       // invariant between vec_x_pos and vec_y_pos
       
       // Go over each row of vec_x_pos
@@ -167,35 +159,37 @@ MatrixXd BlazeCross_(
 
 //// The returner
 // [[Rcpp::Export]]
-RcppExport SEXP BlazeCross(
+RcppExport SEXP Blaze__Cross(
     SEXP vec_x_, SEXP vec_y_,
     SEXP vec_x_pos_, SEXP vec_y_pos_) {
   
-  // Must coerce vector to arma::vec type (or whatever type to feed into funk)
+  // Must coerce vector to blaze::DynamicVector<double> type (or whatever type to feed into funk)
   // so that we convert from input type from R (SEXP) to whatever our funk needs
   
   return Rcpp::wrap(
     BlazeCross_(
-      as<MatrixXd>(vec_x_),
-      as<MatrixXd>(vec_y_),
-      as<MatrixXd>(vec_x_pos_),
-      as<MatrixXd>(vec_y_pos_)
+      as<blaze::DynamicMatrix<double>>(vec_x_),
+      as<blaze::DynamicMatrix<double>>(vec_y_),
+      as<blaze::DynamicMatrix<double>>(vec_x_pos_),
+      as<blaze::DynamicMatrix<double>>(vec_y_pos_)
     ));
   
 }
 
 
+
+
 // Create numerator (Func_Num)
 // which will be a vector
-VectorXd BlazeNum_(
+blaze::DynamicVector<double> BlazeNum_(
     const int P, const int r,
-    MatrixXd mat_x, MatrixXd mat_y) {
+    blaze::DynamicMatrix<double> vec_x, blaze::DynamicMatrix<double> vec_y) {
   
   // Create output placeholder
-  VectorXd this_count(mat_x.rows());
+  blaze::DynamicVector<double> this_count(vec_x.rows());
   
   if (r == 1) {
-    this_count = mat_x.rowwise().prod() + mat_y.rowwise().prod();
+    this_count = blaze::prod<rowwise>(vec_x) + blaze::prod<rowwise>(vec_y);
     return this_count;
   } else {
     
@@ -207,19 +201,19 @@ VectorXd BlazeNum_(
     
     // Create combinations of size1 and size2,
     // where size2 will be a reversal
-    MatrixXd mat_x_pos = BlazeCombn_(mat_x.cols(), size1);
-    MatrixXd mat_y_pos = BlazeCombn_(mat_x.cols(), size2).rowwise().reverse();
+    blaze::DynamicMatrix<double> vec_x_pos = BlazeCombn_(vec_x.columns(), size1);
+    blaze::DynamicMatrix<double> vec_y_pos = blaze::reverse<rowwise>(BlazeCombn_(vec_x.columns(), size2));
     
-    // printf("%4.3f", mat_x_pos.size());
+    // printf("%4.3f", vec_x_pos.size());
     
     // First, P-r small and r-1 caps:
-    this_count = BlazeCross_(mat_x, mat_y, mat_x_pos, mat_y_pos).rowwise().sum();
+    this_count = blaze::sum<rowwise>(BlazeCross_(vec_x, vec_y, vec_x_pos, vec_y_pos));
     
     // Next, P-r caps and r-1 small:
     // ONLY applicable if we are not comparing identical sizes
     if (size1 != size2) {
-      this_count = this_count + BlazeCross_(
-        mat_x, mat_y, mat_y_pos, mat_x_pos).rowwise().sum();
+      this_count = this_count + blaze::sum<rowwise>(
+        BlazeCross_(vec_x, vec_y, vec_y_pos, vec_x_pos));
     }
     
     return this_count;
@@ -228,15 +222,29 @@ VectorXd BlazeNum_(
   
 }
 
+// [[Rcpp::Export]]
+RcppExport SEXP Blaze__Num(
+    const SEXP P_, const SEXP r_,
+    SEXP vec_x_, SEXP vec_y_) {
+  
+  
+  return Rcpp::wrap(BlazeNum_(
+      as<int>(P_), as<int>(r_),
+      as<blaze::DynamicMatrix<double>>(vec_x_),
+      as<blaze::DynamicMatrix<double>>(vec_y_)
+  ));
+  
+}
+
 
 
 // Inner frac (Func_Inner)
-VectorXd BlazeInner_(
+blaze::DynamicVector<double> BlazeInner_(
     const int P, const int r,
-    MatrixXd vec_x, MatrixXd vec_y) {
+    blaze::DynamicMatrix<double> vec_x, blaze::DynamicMatrix<double> vec_y) {
   
   if (r == 1) {
-    return (vec_x.rowwise().prod() + vec_y.rowwise().prod()) / P;
+    return (blaze::prod<rowwise>(vec_x) + blaze::prod<rowwise>(vec_y)) / P;
   } else {
     return BlazeNum_(P, r, vec_x, vec_y) / (P * nchook3(P - 1, r - 1));
   }
@@ -244,18 +252,32 @@ VectorXd BlazeInner_(
 }
 
 
+// [[Rcpp::Export]]
+RcppExport SEXP Blaze__Inner(
+    const SEXP P_, const SEXP r_,
+    SEXP vec_x_, SEXP vec_y_) {
+  
+  return Rcpp::wrap(BlazeInner_(
+      as<int>(P_), as<int>(r_),
+      as<blaze::DynamicMatrix<double>>(vec_x_),
+      as<blaze::DynamicMatrix<double>>(vec_y_)
+  ));
+  
+}
+
+
 
 // Inner sum (Func_Inner_Sum) [returns vector of size vec_x_.rows()]
 // this will loop over 1:P_upper and call ArmaInner, and add the values
-VectorXd BlazeInnerSum_ (
+blaze::DynamicVector<double> BlazeInnerSum_ (
     const int P,
-    const MatrixXd vec_x, const MatrixXd vec_y) {
+    const blaze::DynamicMatrix<double> vec_x, const blaze::DynamicMatrix<double> vec_y) {
   
   // Define the upper bound of the loop (P_upper)
   int P_upper = ( P % 2 == 0 ? (P / 2) : ((P + 1) * 0.5) );
   
-  // Allocate output vector with zeroes
-  VectorXd sum_count = vec_x * 0;
+  // Allocate output vector
+  blaze::DynamicVector<double> sum_count(vec_x.rows());
   
   // Loop
   for (int Rx = 1; Rx <= P_upper; Rx++) {
@@ -268,96 +290,107 @@ VectorXd BlazeInnerSum_ (
   
 }
 
+
 // [[Rcpp::Export]]
-RcppExport SEXP BlazeInnerSum(
+RcppExport SEXP Blaze__InnerSum(
     const SEXP P_,
     const SEXP vec_x_, const SEXP vec_y_) {
   
   return Rcpp::wrap(BlazeInnerSum_(
       as<int>(P_),
-      as<MatrixXd>(vec_x_),
-      as<MatrixXd>(vec_y_)
+      as<blaze::DynamicMatrix<double>>(vec_x_),
+      as<blaze::DynamicMatrix<double>>(vec_y_)
   ));
   
 }
 
 
-// void removeRow2(Eigen::MatrixXd& matrix, unsigned int rowToRemove)
-// {
-//   unsigned int numRows = matrix.rows()-1;
-//   unsigned int numCols = matrix.cols();
-//   
-//   if( rowToRemove < numRows )
-//     matrix.block(rowToRemove,0,numRows-rowToRemove,numCols) = matrix.bottomRows(numRows-rowToRemove);
-//   
-//   matrix.conservativeResize(numRows,numCols);
-// }
 
-void removeColumn2(Eigen::MatrixXd& matrix, unsigned int colToRemove)
-{
-  unsigned int numRows = matrix.rows();
-  unsigned int numCols = matrix.cols()-1;
+
+blaze::CompressedVector<double> BlazeSlice_(
+    blaze::DynamicMatrix<double> mat_x
+) {
   
-  if( colToRemove < numCols )
-    matrix.block(0,colToRemove,numRows,numCols-colToRemove) = matrix.rightCols(numCols-colToRemove);
+  // Allocate output matrix
+  blaze::CompressedVector<double> outmat;
   
-  matrix.conservativeResize(numRows,numCols);
+  for(int row = 0; row < mat_x.rows(); row++) {
+    outmat.insert(row, mat_x(row, 1));
+  }
+  
+  return outmat;
 }
+
+// [[Rcpp::Export]]
+RcppExport SEXP Blaze__Slice(
+    const SEXP mat_x) {
+  
+  return Rcpp::wrap(BlazeSlice_(
+      as<blaze::DynamicMatrix<double>>(mat_x)
+  ));
+  
+}
+
+
 
 
 // The marginal effect loop inside Decomp_Factors_Matx
-MatrixXd BlazeDFInnerLoop_(
-    const int num_facts,
-    const MatrixXd mat_x, const MatrixXd mat_y,
-    const int threads) {
-  
-  // Allocate output matrix
-  MatrixXd outmat(mat_x.rows(), num_facts);
-  
-  // We will loop over the factors 1 through num_facts
-#pragma omp parallel num_threads(threads)
-{
-#pragma omp for
-  for (int x = 1; x < num_facts + 1; x++) {
-    
-    // Remove the x'th factor from input matrix and
-    // use over ArmaInnerSum_()
-    MatrixXd xshed = mat_x;
-    MatrixXd yshed = mat_y;
-    
-    // We need to refer from the original input copies everytime
-    // because shed_col() is a self-inflicted void funk
-    // xshed.shed_col(x - 1);
-    // yshed.shed_col(x - 1);
-    
-    removeColumn2(xshed, x-1);
-    removeColumn2(yshed, x-1);
-    
-    outmat.col(x - 1) = BlazeInnerSum_(num_facts, xshed, yshed);
-    
-    // Multiply with the sliced matrix
-    VectorXd tmpcol = mat_y.col(x - 1) - mat_x.col(x - 1);
-    
-    outmat.col(x - 1) = outmat.col(x - 1) * tmpcol;
-    
-  }
-}
+blaze::DynamicMatrix<double> BlazeDFInnerLoop_(
+  const int num_facts,
+  const blaze::DynamicMatrix<double> mat_x, 
+  const blaze::DynamicMatrix<double> mat_y,
+  const int threads) {
 
-return outmat;
+  // Allocate output matrix
+  blaze::DynamicMatrix<double> outmat(mat_x.rows(), num_facts);
+
+  // // We will loop over the factors 1 through num_facts
+  // #pragma omp parallel num_threads(threads)
+  // {
+  //   #pragma omp for
+    for (int x = 1; x < num_facts + 1; x++) {
+  
+      // Remove the x'th factor from input matrix and
+      // use over BlazeInnerSum_()
+      blaze::DynamicMatrix<double> xshed = mat_x;
+      blaze::DynamicMatrix<double> yshed = mat_y;
+  
+      // We need to refer from the original input copies everytime
+      // because shed_col() is a self-inflicted void funk
+      xshed.shed_col(x - 1);
+      yshed.shed_col(x - 1);
+  
+      outmat.col(x - 1) = BlazeInnerSum_(num_facts, xshed, yshed);
+  
+      // Multiply with the sliced matrix
+      Blaze::DynamicVector<double> tmpcol = mat_y.col(x - 1) - mat_x.col(x - 1);
+  
+      outmat.col(x - 1) = outmat.col(x - 1) % tmpcol;
+  
+    }
+  // }
+
+  return outmat;
 
 }
 
 // [[Rcpp::Export]]
 RcppExport SEXP BlazeDFInnerLoop(
-    const SEXP num_facts,
-    SEXP mat_x_, SEXP mat_y_,
-    const SEXP threads_ ) {
-  
+  const SEXP num_facts,
+  SEXP mat_x_, SEXP mat_y_,
+  const SEXP threads_ ) {
+
   return Rcpp::wrap(BlazeDFInnerLoop_(
-      as<int>(num_facts),
-      as<MatrixXd>(mat_x_),
-      as<MatrixXd>(mat_y_),
-      as<int>(threads_)
-  ));
-  
+                      as<int>(num_facts),
+                      as<blaze::DynamicMatrix<double>>(mat_x_),
+                      as<blaze::DynamicMatrix<double>>(mat_y_),
+                      as<int>(threads_)
+                    ));
+
 }
+
+
+
+
+
+
