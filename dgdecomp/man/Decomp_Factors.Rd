@@ -5,11 +5,18 @@
 \alias{Decomp_Factors_Matx}
 \title{Compute the marginal decomposition effects from given input}
 \usage{
-Decomp_Factors(vec_x, vec_y, return_dt = TRUE, equality_check = TRUE,
-  ...)
+Decomp_Factors(vec_x, vec_y, return_dt = TRUE, equality_check = TRUE, ...)
 
-Decomp_Factors_Matx(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
-  parallel = 1, equality_check = TRUE, ...)
+Decomp_Factors_Matx(
+  mat_x,
+  mat_y,
+  return_dt = TRUE,
+  use_cpp = TRUE,
+  parallel = 1,
+  cpplib = "arma",
+  equality_check = TRUE,
+  ...
+)
 }
 \arguments{
 \item{vec_x}{First input vector (represents t-1)}

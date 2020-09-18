@@ -4,8 +4,16 @@
 \alias{Decomp_on_DT}
 \title{Apply DG Decomposition to data.table columns}
 \usage{
-Decomp_on_DT(input_data, factor_names, time_col, bycol, use_cpp = TRUE,
-  parallel = 1, ...)
+Decomp_on_DT(
+  input_data,
+  factor_names,
+  time_col,
+  bycol,
+  use_cpp = TRUE,
+  parallel = 1,
+  cpplib = "arma",
+  ...
+)
 }
 \arguments{
 \item{input_data}{A data.table with the factors, which must already
@@ -23,7 +31,10 @@ factor for-loop or not (passes to Decomp_Factor_Matx()). Default: TRUE}
 
 \item{parallel}{Number of threads. Default : 1}
 
-\item{...}{extra parameters to be passed through \code{Decomp_Factors()}
+\item{cpplib}{C++ library to use, one of \code{c('arma', 'eigen')}.
+Default: 'arma'}
+
+\item{...}{extra parameters to be passed through \code{Decomp_Factors_Matx()}
 to \code{all.equal()}}
 }
 \value{

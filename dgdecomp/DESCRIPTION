@@ -16,7 +16,7 @@ LinkingTo:
     Rcpp,
     RcppArmadillo,
     RcppEigen,
-    RcppBlaze
+    RcppBlaze3
 Depends:
     data.table,
     Rcpp

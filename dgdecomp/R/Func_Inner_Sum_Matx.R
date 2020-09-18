@@ -14,6 +14,11 @@ Func_Inner_Sum_Matx <- function(P, vec_x, vec_y, cpplib) {
         "EigInnerSum",
         P, vec_x, vec_y
       )
+    } else if (cpplib == 'blaze') {
+      .Call(
+        "BlazeInnerSum",
+        P, vec_x, vec_y
+      )
     } else {
       stop("Just stop")
     }

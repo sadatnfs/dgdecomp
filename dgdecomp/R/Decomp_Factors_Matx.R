@@ -25,8 +25,8 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
   # Compute each marginal effect
   
   ## EIGEN still not functional
-  if (cpplib == "eigen") {
-    warning("Eigen support not fixed yet")
+  if (cpplib != "arma") {
+    warning("Eigen and Blaze support not fixed yet")
   }
   
   if (use_cpp) {
@@ -34,6 +34,8 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
       effects_all <- .Call("ArmaDFInnerLoop", num_factors, mat_x, mat_y, parallel)
     } else if (cpplib == "eigen") {
       effects_all <- .Call("EigDFInnerLoop", num_factors, mat_x, mat_y, parallel)
+    } else if (cpplib == "blaze") {
+      effects_all <- .Call("BlazeDFInnerLoop", num_factors, mat_x, mat_y, 1)
     } else {
       stop("Need to specify either arma or eigen for cpplig")
     }

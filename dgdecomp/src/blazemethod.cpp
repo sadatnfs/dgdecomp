@@ -5,7 +5,6 @@
 #include <thread>
 #include <algorithm>
 #include <cstdlib>
-#include <RcppEigen.h>
 #include <RcppBlaze3.h>
 
 
@@ -19,8 +18,9 @@ using blaze::DynamicMatrix;
 using blaze::DynamicVector;
 using blaze::columnVector;
 using blaze::rowwise;
+using blaze::columnwise;
 using blaze::prod;
-
+using blaze::map;
 
 //// Compile code
 // g++  -std=gnu++17 -I"/opt/R/lib/R/include" -DNDEBUG  -I'/data/opt/R/lib/R/library/Rcpp/include' -I'/data/opt/R/lib/R/library/RcppArmadillo/include' -I'/data/opt/R/lib/R/library/RcppEigen/include' -I'/data/opt/R/lib/R/library/RcppBlaze/include' -w -fopenmp -fno-gnu-unique -fno-optimize-sibling-calls -DMKL_ILP64 -m64 -I/opt/intel/compilers_and_libraries/linux/mkl/include -I/usr/include -I/opt/conda/include                             -msse2 -msse3 -msse4.1 -msse4.2 -mfma -mavx -mavx2 -ffp-contract=fast  -mfpmath=sse -g -O3   -fopenmp -lgomp  -fPIC   -w -fopenmp -fno-gnu-unique -fno-optimize-sibling-calls -DMKL_ILP64 -m64 -I/opt/intel/compilers_and_libraries/linux/mkl/include -I/usr/include -I/opt/conda/include                             -msse2 -msse3 -msse4.1 -msse4.2 -mfma -mavx -mavx2 -ffp-contract=fast  -mfpmath=sse -g -O3   -c /home/nasadat/blazetest.cpp -o /home/nasadat/blazetest.o; g++ -std=gnu++17 -shared -L/opt/R/lib/R/lib -L/usr/local/lib -liconv -L/opt/conda/lib -licui18n -licuuc -licudata -L/opt/hadoop/lib/native:/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64_lin:/opt/intel/lib/intel64_lin:/usr/lib:/usr/local/lib:/opt/intel/compilers_and_libraries_2020.1.217/linux/tbb/lib/intel64_lin/gcc4.7:/opt/intel/compilers_and_libraries_2020.1.217/linux/compiler/lib/intel64_lin:/opt/intel/compilers_and_libraries_2020.1.217/linux/mkl/lib/intel64_lin:/opt/hadoop/lib/native:/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64_lin:/opt/intel/lib/intel64_lin:/usr/lib:/usr/local/lib:/opt/intel/compilers_and_libraries_2020.1.217/linux/tbb/lib/intel64_lin/gcc4.7:/opt/intel/compilers_and_libraries_2020.1.217/linux/compiler/lib/intel64_lin:/opt/intel/compilers_and_libraries_2020.1.217/linux/mkl/lib/intel64_lin:/opt/conda/lib:/opt/conda/lib -L/usr/lib -o /home/nasadat/blazetest.so /home/nasadat/blazetest.o -fopenmp -lgomp -L/opt/R/lib/R/lib -lR
@@ -41,6 +41,12 @@ long int nchook3(const int N, const int K) {
   
   return nCk;
 }
+
+// long int fact(int n);
+// long int nCr(const int n, const int r)
+// {
+//   return fact(n) / (fact(r) * fact(n - r));
+// }
 
 // [[Rcpp::Export]]
 RcppExport SEXP Blaze__nchook3(
@@ -63,8 +69,11 @@ blaze::DynamicMatrix<double> BlazeCombn_(int N, int K) {
   long int nCk = nchook3(N, K);
   
   // Create output matrix
-  int matrow = nCk;
-  int matcol = K;
+  long int matrow = nCk;
+  long int matcol = K;
+  
+  // std::cout << "N: " << N << ", K:" << K << ", matrow=nCK:" << matrow << ", matcol:" << matcol << std::endl;
+  
   
   // print integers and permute bitmask
   // and store in a VECTOR first
@@ -95,8 +104,10 @@ blaze::DynamicMatrix<double> BlazeCombn_(int N, int K) {
   }
   
   
+  // std::cout << "Blaze outmat combn: " << matrow << ", " << matcol << std::endl;
+  
   // Finally, transpose this matrix and return!
-  transpose(outmat);
+  outmat = trans(outmat);
   return outmat;
   
 }
@@ -120,12 +131,12 @@ blaze::DynamicMatrix<double> BlazeCross_(
   
   
   // Create output matrix
-  blaze::DynamicMatrix<double> prod_inner(vec_x.rows(), vec_x_pos.columns());
+  blaze::DynamicMatrix<double> prod_inner(vec_x.rows(), vec_x_pos.columns(), 0);
   
   // Temp store
   double tmpprod = 1.;
   
-  for ( int row1 = 0; row1 < prod_inner.rows(); row1++) {
+  for ( int row1 = 0; row1 < vec_x.rows(); row1++) {
     
     for ( int col1 = 0; col1 < vec_x_pos.columns(); col1++) { 
       // invariant between vec_x_pos and vec_y_pos
@@ -151,6 +162,8 @@ blaze::DynamicMatrix<double> BlazeCross_(
     }
     
   }
+  
+  // std::cout << "Blaze BlazeCross_ " << prod_inner << std::endl;
   
   return prod_inner;
   
@@ -202,12 +215,17 @@ blaze::DynamicVector<double> BlazeNum_(
     // Create combinations of size1 and size2,
     // where size2 will be a reversal
     blaze::DynamicMatrix<double> vec_x_pos = BlazeCombn_(vec_x.columns(), size1);
-    blaze::DynamicMatrix<double> vec_y_pos = blaze::reverse<rowwise>(BlazeCombn_(vec_x.columns(), size2));
+    blaze::DynamicMatrix<double> vec_y_pos;
+    vec_y_pos = blaze::reverse<columnwise>(BlazeCombn_(vec_y.columns(), size2));
     
-    // printf("%4.3f", vec_x_pos.size());
+    // std::cout << "Blaze combn dims for sizes: " << size1 << ", " << size2 ;
+    // std::cout << " vec_x_pos: " << vec_x_pos.rows() << ", " << vec_x_pos.columns() << "; ";
+    // std::cout << " vec_y_pos: " << vec_y_pos.rows() << ", " << vec_y_pos.columns() << "; " << std::endl;
     
     // First, P-r small and r-1 caps:
     this_count = blaze::sum<rowwise>(BlazeCross_(vec_x, vec_y, vec_x_pos, vec_y_pos));
+    
+    // std::cout << "Blaze pre this_count: " << this_count << std::endl;
     
     // Next, P-r caps and r-1 small:
     // ONLY applicable if we are not comparing identical sizes
@@ -215,6 +233,9 @@ blaze::DynamicVector<double> BlazeNum_(
       this_count = this_count + blaze::sum<rowwise>(
         BlazeCross_(vec_x, vec_y, vec_y_pos, vec_x_pos));
     }
+    
+    // std::cout << "Blaze post this_count: " << this_count << std::endl;
+    
     
     return this_count;
     
@@ -243,11 +264,31 @@ blaze::DynamicVector<double> BlazeInner_(
     const int P, const int r,
     blaze::DynamicMatrix<double> vec_x, blaze::DynamicMatrix<double> vec_y) {
   
+  blaze::DynamicVector<double> outvec; 
+  
   if (r == 1) {
-    return (blaze::prod<rowwise>(vec_x) + blaze::prod<rowwise>(vec_y)) / P;
+    
+    outvec = (blaze::prod<rowwise>(vec_x) + blaze::prod<rowwise>(vec_y)) / P;
   } else {
-    return BlazeNum_(P, r, vec_x, vec_y) / (P * nchook3(P - 1, r - 1));
+    outvec = BlazeNum_(P, r, vec_x, vec_y) / (P * nchook3(P - 1, r - 1));
   }
+  
+  
+  return outvec;
+  
+}
+
+
+// [[Rcpp::Export]]
+RcppExport SEXP Blaze__Inner(
+    const SEXP P_, const SEXP r_,
+    SEXP vec_x_, SEXP vec_y_) {
+  
+  return Rcpp::wrap(BlazeInner_(
+      as<int>(P_), as<int>(r_),
+      as<blaze::DynamicMatrix<double>>(vec_x_),
+      as<blaze::DynamicMatrix<double>>(vec_y_)
+  ));
   
 }
 
@@ -286,6 +327,7 @@ blaze::DynamicVector<double> BlazeInnerSum_ (
     );
   }
   
+  
   return sum_count;
   
 }
@@ -307,68 +349,194 @@ RcppExport SEXP Blaze__InnerSum(
 
 
 
-blaze::CompressedVector<double> BlazeSlice_(
-    blaze::DynamicMatrix<double> mat_x
+blaze::DynamicMatrix<double> BlazeSlice_(
+    blaze::DynamicMatrix<double> mat_x,
+    int colz
 ) {
   
   // Allocate output matrix
-  blaze::CompressedVector<double> outmat;
+  // blaze::StaticMatrix<double,mat_x.rows(), 1>outmat;
   
-  for(int row = 0; row < mat_x.rows(); row++) {
-    outmat.insert(row, mat_x(row, 1));
-  }
+  // for(int row = 0; row < mat_x.rows(); row++) {
+  //   outmat(row, 0) = mat_x(row, colz);
+  // }
+  
+  blaze::DynamicMatrix<double> outmat;
+  outmat = blaze::map( mat_x, []( double d ) { return (d * 2); } );
   
   return outmat;
 }
 
 // [[Rcpp::Export]]
 RcppExport SEXP Blaze__Slice(
-    const SEXP mat_x) {
+    SEXP mat_x,
+    SEXP colz) {
   
-  return Rcpp::wrap(BlazeSlice_(
-      as<blaze::DynamicMatrix<double>>(mat_x)
-  ));
+  return Rcpp::wrap(
+    BlazeSlice_(
+      as<blaze::DynamicMatrix<double>>(mat_x),
+      as<int>(colz)
+    )
+  );
+  
+}
+
+
+
+void dropRow(blaze::DynamicMatrix<double> m, size_t index )
+{
+  
+  // BLAZE_CONSTRAINT_MUST_BE_RESIZABLE_TYPE( MT );
+  
+  if( index >= rows(m) ) {
+    throw std::invalid_argument( "Invalid row index" );
+  }
+  
+  
+  for( size_t i=index+1UL; i<rows(m); ++i ) {
+    row( m, i-1UL ) = row( m, i );
+  }
+  
+  resize( m, rows(m)-1UL, columns(m) );
+}
+
+
+
+void dropColumn(blaze::DynamicMatrix<double> m, size_t index )
+{
+  
+  // BLAZE_CONSTRAINT_MUST_BE_RESIZABLE_TYPE( MT );
+  
+  if( index >= columns(m) ) {
+    throw std::invalid_argument( "Invalid column index" );
+  }
+  
+  for( size_t i=index+1UL; i<columns(m); ++i ) {
+    column( m, i-1UL ) = column( m, i );
+  }
+  
+  resize( m, rows(m), columns(m)-1UL );
+  
+}
+
+blaze::DynamicMatrix<double> dropColumnX(blaze::DynamicMatrix<double> m, size_t index )
+{
+  
+  // BLAZE_CONSTRAINT_MUST_BE_RESIZABLE_TYPE( MT );
+  
+  if( index >= columns(m) ) {
+    throw std::invalid_argument( "Invalid column index" );
+  }
+  
+  for( size_t i=index+1UL; i<columns(m); ++i ) {
+    column( m, i-1UL ) = column( m, i );
+  }
+  
+  resize( m, rows(m), columns(m)-1UL );
+  
+  return m;
+  
+}
+
+blaze::DynamicMatrix<double> matDrop(blaze::DynamicMatrix<double> m, 
+                                     int drop_ind, size_t dropThing) {
+  
+  if( drop_ind == 0) {
+    blaze::DynamicMatrix<double> outmat(m.rows() - 1, m.columns());
+    dropColumn(m, dropThing);
+    
+    for(int i = 0; i < outmat.rows(); i++) {
+      for(int j = 0; j < outmat.columns(); j++) {
+        outmat(i,j) = m(i,j);
+      }
+    }
+    
+    // blaze::DynamicMatrix<double> outmat;
+    // outmat = m;
+    // return outmat;
+    return outmat;
+  } else if( drop_ind == 1) {
+    
+    blaze::DynamicMatrix<double> outmat(m.rows(), m.columns() - 1);
+    dropRow(m, dropThing);
+    for(int i = 0; i < outmat.rows(); i++) {
+      for(int j = 0; j < outmat.columns(); j++) {
+        outmat(i,j) = m(i,j);
+      }
+    }
+    return outmat;
+  } else {
+    return m;
+  }
+  
+  
+  
+}
+
+// [[Rcpp::Export]]
+RcppExport SEXP Blaze__matDrop(
+    SEXP m,
+    SEXP drop_ind,
+    SEXP dropThing) {
+  
+  return Rcpp::wrap(
+    matDrop(
+      as<blaze::DynamicMatrix<double>>(m),
+      as<int>(drop_ind),
+      as<size_t>(dropThing)
+    )
+  );
   
 }
 
 
 
 
+
 // The marginal effect loop inside Decomp_Factors_Matx
 blaze::DynamicMatrix<double> BlazeDFInnerLoop_(
-  const int num_facts,
-  const blaze::DynamicMatrix<double> mat_x, 
-  const blaze::DynamicMatrix<double> mat_y,
-  const int threads) {
-
+    const int num_facts,
+    const blaze::DynamicMatrix<double> mat_x, 
+    const blaze::DynamicMatrix<double> mat_y,
+    const int threads) {
+  
   // Allocate output matrix
   blaze::DynamicMatrix<double> outmat(mat_x.rows(), num_facts);
-
-  // // We will loop over the factors 1 through num_facts
-  // #pragma omp parallel num_threads(threads)
-  // {
-  //   #pragma omp for
-    for (int x = 1; x < num_facts + 1; x++) {
   
-      // Remove the x'th factor from input matrix and
-      // use over BlazeInnerSum_()
-      blaze::DynamicMatrix<double> xshed = mat_x;
-      blaze::DynamicMatrix<double> yshed = mat_y;
-  
-      // We need to refer from the original input copies everytime
-      // because shed_col() is a self-inflicted void funk
-      xshed.shed_col(x - 1);
-      yshed.shed_col(x - 1);
-  
-      outmat.col(x - 1) = BlazeInnerSum_(num_facts, xshed, yshed);
-  
+  // We will loop over the factors 1 through num_facts
+#pragma omp parallel num_threads(threads)
+{
+#pragma omp for
+  for (int x = 1; x < num_facts + 1; x++) {
+    
+    // Remove the x'th factor from input matrix and
+    // use over ArmaInnerSum_()
+    blaze::DynamicMatrix<double> xshed(mat_x);
+    blaze::DynamicMatrix<double> yshed(mat_y);
+    
+    
+    // We need to refer from the original input copies everytime
+    // because shed_col() is a self-inflicted void funk
+    // xshed.shed_col(x - 1);
+    // yshed.shed_col(x - 1);
+    
+    // xshed = mat_x;
+    // yshed = mat_y;
+    
+    xshed = dropColumnX(xshed, x-1);
+    yshed = dropColumnX(yshed, x-1);
+    
+    
+    blaze::DynamicVector<double> tempvec = BlazeInnerSum_(num_facts, xshed, yshed);
+    
+    for (int r = 0; r < outmat.rows(); r++) {
+      
       // Multiply with the sliced matrix
-      Blaze::DynamicVector<double> tmpcol = mat_y.col(x - 1) - mat_x.col(x - 1);
-  
-      outmat.col(x - 1) = outmat.col(x - 1) % tmpcol;
-  
+      outmat(r, x - 1) = tempvec[r] * (mat_y(r, x - 1) - mat_x(r, x - 1));
     }
-  // }
+    
+  }
+}
 
   return outmat;
 
@@ -381,12 +549,12 @@ RcppExport SEXP BlazeDFInnerLoop(
   const SEXP threads_ ) {
 
   return Rcpp::wrap(BlazeDFInnerLoop_(
-                      as<int>(num_facts),
-                      as<blaze::DynamicMatrix<double>>(mat_x_),
-                      as<blaze::DynamicMatrix<double>>(mat_y_),
-                      as<int>(threads_)
-                    ));
-
+      as<int>(num_facts),
+      as<blaze::DynamicMatrix<double>>(mat_x_),
+      as<blaze::DynamicMatrix<double>>(mat_y_),
+      as<int>(threads_)
+  ));
+  
 }
 
 
