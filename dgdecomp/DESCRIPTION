@@ -15,7 +15,7 @@ Maintainer: Nafis Sadat <sadatnfs@gmail.com>
 LinkingTo: 
     Rcpp,
     RcppArmadillo,
-    RcppEigen,
+    RcppEigen
 Depends:
     data.table,
     Rcpp
