@@ -44,22 +44,59 @@ decomp_out_blaze <- Decomp_Factors_Matx(
 ##### Testing on data.table input ----
 
 ### Simulate 2 time periods; P factors; 3 groups
-sim_dt <- simulate_decomp_data_fullmat(2, number_of_factors, 3)
+number_of_factors <- 15
+sim_dt <- dgdecomp::simulate_decomp_data_fullmat(2, number_of_factors, 10)
 
-decomp_out_DT <- Decomp_on_DT(
-  input_data = sim_dt,
-  factor_names = paste0("X_", c(1:number_of_factors)),
-  bycol = "Id",
-  time_col = "t"
+## Create the lag and current matrices from the DT
+lag_mat <- sim_dt[ ,
+                      as.list(as.matrix(.SD)[1, ]),
+                      .SDcols = paste0("X_", c(1:number_of_factors)), by = "Id"
+                      ][Id %in% c(1:3)]
+curr_mat <- sim_dt[ ,
+                       as.list(as.matrix(.SD)[2, ]),
+                       .SDcols = paste0("X_", c(1:number_of_factors)), by = "Id"
+                       ][Id %in% c(1:3)]
+
+## Apply decomp to with each of these new matrices
+decomp_output_TestArma <- Decomp_Factors_Matx(
+  mat_x = as.matrix(lag_mat[, .SD, .SDcols = paste0("X_", c(1:number_of_factors))]),
+  mat_y = as.matrix(curr_mat[, .SD, .SDcols = paste0("X_", c(1:number_of_factors))]),
+  use_cpp = TRUE,
+  parallel = 1,
+  cpplib = "arma"
 )
-decomp_out_DT_true_blaze <- Decomp_on_DT(
+decomp_output_TestBlaze <- Decomp_Factors_Matx(
+  mat_x = as.matrix(lag_mat[, .SD, .SDcols = paste0("X_", c(1:number_of_factors))]),
+  mat_y = as.matrix(curr_mat[, .SD, .SDcols = paste0("X_", c(1:number_of_factors))]),
+  use_cpp = TRUE,
+  parallel = 1,
+  cpplib = "blaze", 
+  equality_check = T
+)
+
+
+
+system.time(
+decomp_out_DT <- dgdecomp::Decomp_on_DT(
   input_data = sim_dt,
   factor_names = paste0("X_", c(1:number_of_factors)),
   bycol = "Id",
   time_col = "t",
   parallel = 1,
-  cpplib = "blaze"
-)
+  cpplib = "arma"
+))
+
+
+system.time(
+decomp_out_DT_true_blaze <- dgdecomp::Decomp_on_DT(
+  input_data = sim_dt,
+  factor_names = paste0("X_", c(1:number_of_factors)),
+  bycol = "Id",
+  time_col = "t",
+  parallel = 1,
+  cpplib = "blaze",
+  equality_check = F
+))
 
 decomp_out_DT_false_arma <- Decomp_on_DT(
   input_data = sim_dt,
