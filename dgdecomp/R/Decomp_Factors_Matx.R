@@ -35,7 +35,8 @@ Decomp_Factors_Matx <- function(mat_x, mat_y, return_dt = TRUE, use_cpp = TRUE,
     } else if (cpplib == "eigen") {
       effects_all <- .Call("EigDFInnerLoop", num_factors, mat_x, mat_y, parallel)
     } else if (cpplib == "blaze") {
-      effects_all <- .Call("BlazeDFInnerLoop", num_factors, mat_x, mat_y, parallel)
+      stop("Blaze support removed")
+      # effects_all <- .Call("BlazeDFInnerLoop", num_factors, mat_x, mat_y, parallel)
     } else {
       stop("Need to specify either arma or eigen for cpplig")
     }

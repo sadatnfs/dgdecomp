@@ -1,2 +1,3 @@
 CXX_STD = CXX14
-PKG_CXXFLAGS = -mtune=native -DBLAZE_USE_CPP_THREADS $(SHLIB_OPENMP_CFLAGS) -I/data/opt/R/lib/R/library/RcppBlaze3/include/blaze
+PKG_CXXFLAGS = -mtune=native $(SHLIB_OPENMP_CFLAGS)
+# PKG_CXXFLAGS = -mtune=native -DBLAZE_USE_CPP_THREADS $(SHLIB_OPENMP_CFLAGS) -I/data/opt/R/lib/R/library/RcppBlaze3/include/blaze
